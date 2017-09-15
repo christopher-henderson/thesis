@@ -1,3 +1,4 @@
+import time
 N = 4
 
 # backtrack r = root(); c = first(); c = next() {
@@ -62,14 +63,12 @@ N = 4
 
 
 def go():
-    root = first(0, N + 1)
-    # candidate = first(*root)
+    root = (0, N + 1)
     stack = list()
-    structure = list([root])
+    structure = list()
 
 
     while root is not None:
-        print("data:    ", structure, root)
         candidate = first(*root)
         while candidate is not None:
             if reject(structure, *candidate):
@@ -83,15 +82,13 @@ def go():
             root = candidate
             break
         else:
-
-            # print("data:    ", structure)
-            # print("stack:   ", stack)
-            # print("root:    ", root)
-
             structure.pop()
-            root = next(*stack.pop())
-            structure[-1] = root
-            # continue
+            root = next(*root)
+            while root is None and len(stack) is not 0:
+                structure.pop()
+                root = next(*stack.pop())
+            structure.append(root)
+            
 
 
         
