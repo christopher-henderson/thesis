@@ -1,5 +1,5 @@
 import time
-N = 4
+N = 8
 
 # backtrack r = root(); c = first(); c = next() {
 #     switch
@@ -64,32 +64,39 @@ N = 4
 
 def go():
     root = (0, N + 1)
-    stack = list()
+    stack = list([root])
     structure = list()
 
-
-    while root is not None:
+    while root is not None: 
         candidate = first(*root)
         while candidate is not None:
+            # time.sleep(2)
             if reject(structure, *candidate):
                 candidate = next(*candidate)
                 continue
             structure.append(candidate)
             if accept(structure):
                 output(structure)
-                return
+                structure.pop()
+                candidate = next(*candidate)
+                continue
             stack.append(root)
             root = candidate
             break
         else:
-            structure.pop()
             root = next(*root)
-            while root is None and len(stack) is not 0:
-                structure.pop()
-                root = next(*stack.pop())
+            structure.pop()
+            while stack:
+                if root is None:
+                    root = next(*stack.pop())
+                    if structure:
+                        structure.pop()
+                    continue
+                if reject(structure, *root):
+                    root = next(*root)
+                    continue
+                break
             structure.append(root)
-            
-
 
         
 
@@ -147,13 +154,12 @@ def accept(P):
     # The latest queen has been verified safe, so if we've placed N queens, we win.
     return len(P) == N
 
-
 def reject(P, C, R):
     # Return true only if the partial candidate c is not worth completing.
     # c, in this case, is Column and Row together.
-    column = 0
-    for _, row in P:
-        column += 1
+    # column = 0
+    for column, row in P:
+        # column += 1
         if (R == row or
                 C == column or
                 R + C == row + column or
