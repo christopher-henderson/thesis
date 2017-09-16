@@ -1,5 +1,6 @@
+import copy
 import time
-N = 8
+N = 4
 
 # backtrack r = root(); c = first(); c = next() {
 #     switch
@@ -12,72 +13,35 @@ N = 8
 #             break
 # }
 
-# def backtrack(P, C, R): push C R to stacks
-#     if reject(P, C, R):
-#         return
-#     P.append(R)
-#     if accept(P):
-#         output(P)
-#     s = first(C)
-#     while s is not None:
-#         backtrack(P, *s)
-#         s = next(*s)
-#     # P.pop()
-#     # if more(R):
-#     #     backtrack(P, *next(C, R))
-#
-# 1
-# reject, candidate = pop from stack, goto 1
-# accept output()
-# push candidate to stack
-# candidate = first(candidate)
-# goto 1
+# root = (0, N  + 1)
 
-# def go():
-#     root = 1, N
-#     candidate = root
-#     stack = list()
-#     structure = list()
+# backtrack on root {
+#     procedures {
+#         reject:
+#             for column, row in P:
+#                 if (R == row or
+#                         C == column or
+#                         R + C == row + column or
+#                         R - C == row - column):
+#                     return True
+#             return False
+#     }
+# }
 
-#     while candidate is not None:
-#         if reject(structure, *candidate):
-#             print(1, stack, structure)
-#             candidate = None if not stack else stack.pop()
-#             continue
-#         structure.append(candidate)
-#         if accept(structure):
-#             output(structure)
-#             structure.pop()
-#             print(2, stack)
-#             candidate = None if not stack else stack.pop()
-#             break
-#         if candidate[1] > 1:
-#             stack.append([candidate[0], candidate[1] - 1])
-#         s = first(*candidate)
-#         while s is not None:
-#             stack.append(s)
-#             s = next(*s)
-#         print(3, stack)
-#         candidate = None if not stack else stack.pop()
-        # print(candidate, 3)
-
-
-def go():
-    root = (0, N + 1)
+def backtrack(root, first, next, reject, accept, add, remove):
     stack = list([root])
     structure = list()
 
     while root is not None: 
         candidate = first(*root)
         while candidate is not None:
-            # time.sleep(2)
             if reject(structure, *candidate):
                 candidate = next(*candidate)
                 continue
-            structure.append(candidate)
+            add(structure, candidate)
             if accept(structure):
                 output(structure)
-                structure.pop()
+                remove(structure)
                 candidate = next(*candidate)
                 continue
             stack.append(root)
@@ -85,55 +49,21 @@ def go():
             break
         else:
             root = next(*root)
-            structure.pop()
+            remove(structure)
             while stack:
                 if root is None:
                     root = next(*stack.pop())
-                    if structure:
-                        structure.pop()
+                    remove(structure)
                     continue
                 if reject(structure, *root):
                     root = next(*root)
                     continue
                 break
-            structure.append(root)
+            add(structure, root)
 
         
 
 
-    # while candidate is not None:
-    #     if reject(structure, *candidate):
-    #         print(1, stack, structure)
-    #         candidate = None if not stack else stack.pop()
-    #         continue
-    #     structure.append(candidate)
-    #     if accept(structure):
-    #         output(structure)
-    #         structure.pop()
-    #         print(2, stack)
-    #         candidate = None if not stack else stack.pop()
-    #         break
-    #     if candidate[1] > 1:
-    #         stack.append([candidate[0], candidate[1] - 1])
-    #     s = first(*candidate)
-    #     while s is not None:
-    #         stack.append(s)
-    #         s = next(*s)
-    #     print(3, stack)
-    #     candidate = None if not stack else stack.pop()
-    #     print(candidate, 3)
-
-# while candidate is not None:
-#     # stack.append(candidate)
-#     if reject(structure, *candidate):
-#         # stack.pop()
-#         # structure.pop()
-#         candidate = None if not structure else structure.pop()
-#         continue
-#     if accept(structure):
-#         output(structure)
-#     candidate = next(*candidate)
-#     stack.append(candidate)
 
 
 
@@ -175,4 +105,61 @@ def output(P):
     print(P)
 
 
-go()
+def add(P, candidate):
+    P.append(candidate)
+
+
+def remove(P):
+    if P:
+        P.pop()
+
+
+
+RED = 0
+BLUE = 1
+GREEN = 2
+
+
+MAP = [(0, 1), (1, 2), (2, 3), (3, 0)]
+
+def colorReject(PP, nodeN, colorN):
+    P = copy.deepcopy(PP)
+    P.append([nodeN, colorN])
+    for node, color in P:
+        for source, destination in MAP:
+            if source >= len(P) or destination >= len(P):
+                continue
+            if node == source and P[destination][1] == color:
+                return True
+            if node == destination and P[source][1] == color:
+                return True
+    return False
+
+def colorAccept(P):
+    return len(P) == 4
+
+
+def colorFirst(node, color):
+    return (node + 1, RED)
+
+
+def colorNext(node, color):
+    return None if color >= GREEN else (node, color + 1)
+
+
+def colorAdd(P, candidate):
+    P.append(candidate)
+
+
+def colorRemove(P):
+    if P:
+        P.pop()
+
+
+backtrack([-1, RED], colorFirst, colorNext, colorReject, colorAccept, colorAdd, colorRemove)
+
+# print(colorReject(
+#         [[0, RED], [1, BLUE], [2, RED], [3, GREEN]]
+#     ))
+print("NQueens")
+backtrack([0, N + 1], first, next, reject, accept, add, remove)
