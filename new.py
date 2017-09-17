@@ -29,8 +29,8 @@ N = 4
 # }
 
 def backtrack(root, first, next, reject, accept, add, remove):
-    stack = list([root])
-    structure = list()
+    stack = list()
+    structure = list([root])
 
     while root is not None: 
         candidate = first(*root)
@@ -110,8 +110,7 @@ def add(P, candidate):
 
 
 def remove(P):
-    if P:
-        P.pop()
+    P.pop()
 
 
 
@@ -152,14 +151,13 @@ def colorAdd(P, candidate):
 
 
 def colorRemove(P):
-    if P:
-        P.pop()
+    P.pop()
 
 
-backtrack([-1, RED], colorFirst, colorNext, colorReject, colorAccept, colorAdd, colorRemove)
+backtrack([0, RED], colorFirst, colorNext, colorReject, colorAccept, colorAdd, colorRemove)
 
 # print(colorReject(
 #         [[0, RED], [1, BLUE], [2, RED], [3, GREEN]]
 #     ))
 print("NQueens")
-backtrack([0, N + 1], first, next, reject, accept, add, remove)
+backtrack((1, 1), first, next, reject, accept, add, remove)
