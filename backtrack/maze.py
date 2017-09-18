@@ -2,15 +2,36 @@ from backtrack import backtrack
 
 class MazeProblem(object):
 
-    MAZE = [
-        [1, 0, 0, 0],
-        [1, 1, 1, 1],
-        [0, 1, 0, 1],
-        [1, 1, 1, 1]
+
+    SIMPLE = [
+        [0, 0, 0, 0, 0, 0],
+        [1, 1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 0],
+        [0, 1, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0, 0]
+    ]
+
+    CYCLE = [
+        [0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0],
+        [0, 1, 0, 1, 0, 0],
+        [0, 1, 1, 1, 1, 0],
+        [0, 1, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0, 0]
+    ]
+
+
+    MULTIPLE_ENTRANCIES_EXITS = [
+        [0, 0, 0, 0, 0, 0],
+        [1, 1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1],
+        [0, 1, 0, 1, 0, 0],
+        [0, 1, 0, 1, 0, 0]
     ]
 
     VISITED = set()
-    VISITED.add((0, 0))
 
     def __init__(self, R, C, siblings):
         self.R = R
@@ -51,7 +72,9 @@ class MazeProblem(object):
 
     @staticmethod
     def accept(P):
-        return P[-1] == (3, 3)
+        R, C = P[-1].R, P[-1].C
+        return (R is 0 or R is len(MazeProblem.MAZE) - 1 or
+                C is 0 or C is len(MazeProblem.MAZE[R]) - 1)
 
     @classmethod
     def inbounds(cls, R, C):
@@ -80,4 +103,15 @@ class MazeProblem(object):
 
 
 if __name__ == '__main__':
-    backtrack(MazeProblem(0, 0, []), MazeProblem.first, MazeProblem.next, MazeProblem.reject, MazeProblem.accept, MazeProblem.add, MazeProblem.remove, MazeProblem.output)
+    MazeProblem.MAZE = MazeProblem.MULTIPLE_ENTRANCIES_EXITS
+    entrances = [
+        [R, C]
+        for R in range(len(MazeProblem.MAZE))
+        for C in range(len(MazeProblem.MAZE[R]))
+        if MazeProblem.MAZE[R][C] is 1 and
+        (R is 0 or R is len(MazeProblem.MAZE) - 1 or
+        C is 0 or C is len(MazeProblem.MAZE[R]) - 1)
+    ]
+    start = MazeProblem(entrances[0][0], entrances[0][1], entrances[1:])
+    MazeProblem.VISITED.add(start)
+    backtrack(start, MazeProblem.first, MazeProblem.next, MazeProblem.reject, MazeProblem.accept, MazeProblem.add, MazeProblem.remove, MazeProblem.output)
