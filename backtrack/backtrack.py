@@ -1,7 +1,8 @@
 def backtrack(root, first, next, reject, accept, add, remove, output):
     root_stack = list()
-    solution = list([root])
+    solution = list()
 
+    add(solution, root)
     while root is not None: 
         candidate = first(root)
         while candidate is not None:

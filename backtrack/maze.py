@@ -113,5 +113,4 @@ if __name__ == '__main__':
         C is 0 or C is len(MazeProblem.MAZE[R]) - 1)
     ]
     start = MazeProblem(entrances[0][0], entrances[0][1], entrances[1:])
-    MazeProblem.VISITED.add(start)
     backtrack(start, MazeProblem.first, MazeProblem.next, MazeProblem.reject, MazeProblem.accept, MazeProblem.add, MazeProblem.remove, MazeProblem.output)
