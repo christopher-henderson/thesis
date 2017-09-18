@@ -45,36 +45,27 @@ class MazeProblem(object):
         east = tuple(map(add, [0, 1], [self.R, self.C]))
         south = tuple(map(add, [1, 0], [self.R, self.C]))
 
-        options = [option for option in [west, north, east, south] if self.inbounds(*option)]
-        if len(options) > 0:
-            return MazeProblem(options[0][0], options[0][1], options[1:])
+        children = [direction for direction in [west, north, east, south] if self.inbounds(*direction)]
+        if len(children) > 0:
+            # Select the first inbounds child and construct it with its siblings.
+            return MazeProblem(children[0][0], children[0][1], children[1:])
         return None
 
     def next(self):
         if len(self.siblings) is 0:
             return None
+        # Construct the nearest sibling with the rest of its siblings.
         return MazeProblem(self.siblings[0][0], self.siblings[0][1], self.siblings[1:])
-
-    def __hash__(self):
-        return hash(tuple([self.R, self.C]))
-
-    def __eq__(self, other):
-        if type(other) == MazeProblem:
-            return self.R == other.R and self.C == other.C
-        return self.R == other[0] and self.C == other[1]
 
     @classmethod
     def reject(cls, P, candidate):
-        return (candidate in cls.VISITED or 
-                not cls.inbounds(candidate.R, candidate.C) or
-                cls.MAZE[candidate.R][candidate.C] is 0
-            )
+        # It's been seen before or it's a wall.
+        return candidate in cls.VISITED or  cls.MAZE[candidate.R][candidate.C] is 0
 
-    @staticmethod
-    def accept(P):
-        R, C = P[-1].R, P[-1].C
-        return (R is 0 or R is len(MazeProblem.MAZE) - 1 or
-                C is 0 or C is len(MazeProblem.MAZE[R]) - 1)
+    @classmethod
+    def accept(cls, P):
+        # The last node is a node on the boundary of the maze, thus an exit.
+        return cls.is_a_goal(P[-1].R, P[-1].C)
 
     @classmethod
     def inbounds(cls, R, C):
@@ -91,26 +82,47 @@ class MazeProblem(object):
         candidate = P.pop()
         cls.VISITED.remove(candidate)
 
+    @classmethod
+    def is_a_goal(cls, R, C):
+        # The node is a 1 and it is on the border of the maze, thus it
+        # can be used as either an entrance or an exit.
+        return (cls.MAZE[R][C] is 1 and (
+                    R is 0 or R is len(MazeProblem.MAZE) - 1 or
+                    C is 0 or C is len(MazeProblem.MAZE[R]) - 1
+                    )
+                )
+
     @staticmethod
     def output(P):
         print(P)
 
+
+    # Pretty printing.
     def __str__(self):
         return str([self.R, self.C])
 
     def __repr__(self):
         return str(self)
 
+    # These two are just because I wanted throw whole objects intoe VISITED hash set.
+    def __hash__(self):
+        return hash(tuple([self.R, self.C]))
+
+    def __eq__(self, other):
+        if type(other) == MazeProblem:
+            return self.R == other.R and self.C == other.C
+        return self.R == other[0] and self.C == other[1]
+
 
 if __name__ == '__main__':
-    MazeProblem.MAZE = MazeProblem.MULTIPLE_ENTRANCIES_EXITS
+    MazeProblem.MAZE = MazeProblem.SIMPLE
+    # Construct a list of all entrances and exits. An entrance/exit
+    # is any 1 node that is on the edge of the maze.
     entrances = [
         [R, C]
         for R in range(len(MazeProblem.MAZE))
         for C in range(len(MazeProblem.MAZE[R]))
-        if MazeProblem.MAZE[R][C] is 1 and
-        (R is 0 or R is len(MazeProblem.MAZE) - 1 or
-        C is 0 or C is len(MazeProblem.MAZE[R]) - 1)
+        if MazeProblem.is_a_goal(R, C)
     ]
     start = MazeProblem(entrances[0][0], entrances[0][1], entrances[1:])
     backtrack(start, MazeProblem.first, MazeProblem.next, MazeProblem.reject, MazeProblem.accept, MazeProblem.add, MazeProblem.remove, MazeProblem.output)
