@@ -99,13 +99,15 @@ def backtrack(root, first, next, reject, accept, add, remove):
 
 
 
-def first(C, R):
+def first(candidate):
+    C, R = candidate
     # Generate the first extension of candidate c.
     # That is, if we have a placed queen at 1, 1 (C, R) then this should return 2, 1.
     return None if C >= N else (C + 1, 1)
 
 
-def next(C, R):
+def next(candidate):
+    C, R = candidate
     # generate the next alternative extension of a candidate, after the extension s.
     # So if first generated 2, 1 then this should produce 2, 2.
     return None if R >= N else (C, R + 1)
@@ -116,7 +118,8 @@ def accept(P):
     # The latest queen has been verified safe, so if we've placed N queens, we win.
     return len(P) == N
 
-def reject(P, C, R):
+def reject(P, candidate):
+    C, R = candidate
     # Return true only if the partial candidate c is not worth completing.
     # c, in this case, is Column and Row together.
     # column = 0
@@ -128,8 +131,6 @@ def reject(P, C, R):
                 R - C == row - column):
             return True
     return False
-
-
 
 def output(P):
     # use the solution c of P, as appropriate to the application.
@@ -153,7 +154,8 @@ GREEN = 2
 
 MAP = [(0, 1), (1, 2), (2, 3), (3, 0)]
 
-def colorReject(PP, nodeN, colorN):
+def colorReject(PP, N):
+    nodeN, colorN = N
     P = copy.deepcopy(PP)
     P.append([nodeN, colorN])
     for node, color in P:
@@ -170,11 +172,13 @@ def colorAccept(P):
     return len(P) == 4
 
 
-def colorFirst(node, color):
+def colorFirst(candidate):
+    node, color = candidate
     return (node + 1, RED)
 
 
-def colorNext(node, color):
+def colorNext(candidate):
+    node, color = candidate
     return None if color >= GREEN else (node, color + 1)
 
 
@@ -186,13 +190,13 @@ def colorRemove(P):
     P.pop()
 
 
-# backtrack([0, RED], colorFirst, colorNext, colorReject, colorAccept, colorAdd, colorRemove)
+backtrack([0, RED], colorFirst, colorNext, colorReject, colorAccept, colorAdd, colorRemove)
 
 # print(colorReject(
 #         [[0, RED], [1, BLUE], [2, RED], [3, GREEN]]
 #     ))
 # print("NQueens")
-# backtrack((1, 1), first, next, reject, accept, add, remove)
+backtrack((1, 1), first, next, reject, accept, add, remove)
 
 
 
