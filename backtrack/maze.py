@@ -60,7 +60,7 @@ class MazeProblem(object):
     @classmethod
     def reject(cls, P, candidate):
         # It's been seen before or it's a wall.
-        return candidate in cls.VISITED or  cls.MAZE[candidate.R][candidate.C] is 0
+        return candidate in cls.VISITED or cls.MAZE[candidate.R][candidate.C] is 0
 
     @classmethod
     def accept(cls, P):
@@ -104,7 +104,7 @@ class MazeProblem(object):
     def __repr__(self):
         return str(self)
 
-    # These two are just because I wanted throw whole objects intoe VISITED hash set.
+    # These two are just because I wanted throw whole objects into the VISITED hash set.
     def __hash__(self):
         return hash(tuple([self.R, self.C]))
 
@@ -125,4 +125,12 @@ if __name__ == '__main__':
         if MazeProblem.is_a_goal(R, C)
     ]
     start = MazeProblem(entrances[0][0], entrances[0][1], entrances[1:])
-    backtrack(start, MazeProblem.first, MazeProblem.next, MazeProblem.reject, MazeProblem.accept, MazeProblem.add, MazeProblem.remove, MazeProblem.output)
+    backtrack(
+        start, 
+        MazeProblem.first, 
+        MazeProblem.next, 
+        MazeProblem.reject, 
+        MazeProblem.accept, 
+        MazeProblem.add, 
+        MazeProblem.remove, 
+        MazeProblem.output)
