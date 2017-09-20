@@ -1,4 +1,13 @@
-def backtrack(root, first, next, reject, accept, add, remove, output):
+def add(solution, candidate):
+    solution.append(candidate)
+
+def remove(solution):
+    solution.pop()
+
+def output(solution):
+    print(solution)
+
+def backtrack(root, first, next, reject, accept, add=add, remove=remove, output=output):
     root_stack = list()
     solution = list()
 
@@ -30,4 +39,5 @@ def backtrack(root, first, next, reject, accept, add, remove, output):
                     root = next(root)
                     continue
                 break
-            add(solution, root)  
+            if root is not None:
+                add(solution, root)  

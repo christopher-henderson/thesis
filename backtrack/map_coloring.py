@@ -9,29 +9,27 @@ MAP = [(0, 1), (1, 2), (2, 3), (3, 0)]
 
 
 def reject(P, candidate):
-    node, color = candidate
-    edges = (edge for edge in MAP if node in edge)
-    for source, destination in edges:
-        neighbor = source if source != node else destination
-        if neighbor >= len(P):
-            continue
-        if P[neighbor][1] == color:
-            return True
-    return False
+    vertex, color = candidate
+    # Find all edges that contain the candidate vertex.
+    edges = (edge for edge in MAP if vertex in edge)
+    # Find all neighbors to the candidate vertex.
+    neighbors = (source if source != vertex else destination for source, destination in edges)
+    # Return True if any neighbor has already been colored the same color as the candidate vertex.
+    return any(neighbor < len(P) and P[neighbor][1] == color for neighbor in neighbors)
 
 
 def accept(P):
-    return len(P) == 4
+    return len(P) == len(MAP)
 
 
 def first(candidate):
-    node, color = candidate
-    return None if node >= 3 else (node + 1, RED)
+    vertex, color = candidate
+    return None if vertex >= len(MAP) - 1 else (vertex + 1, RED)
 
 
 def next(candidate):
-    node, color = candidate
-    return None if color >= GREEN else (node, color + 1)
+    vertex, color = candidate
+    return None if color >= GREEN else (vertex, color + 1)
 
 
 def add(P, candidate):

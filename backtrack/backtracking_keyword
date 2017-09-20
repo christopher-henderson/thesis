@@ -1,0 +1,80 @@
+# Taken from https://stackoverflow.com/questions/25052858/n-queens-backtracking-solution-implemented-by-python-generator
+# This is rather compact due to the use of generator expressions
+class Solution:
+    # @return a list of lists of string
+    def under_attack(self, col, queens):
+        return col in queens or any(abs(col - x) == len(queens)-i for i,x in enumerate(queens))
+
+    def solve(self,n):
+        solutions = [[]]
+        for row in range(n):
+            solutions = (solution+[i] for solution in solutions
+                                      for i in range(n)    
+                                      if not self.under_attack(i, solution))
+        print(list(solutions))
+        return solutions
+
+A=Solution()
+list(A.solve(8))
+
+
+
+
+
+
+
+N = 4
+backtrack on (1, 1):
+    reject(solution, candidate):
+        column, row = candidate
+        return any(
+            row == r or
+            column == c or
+            row + column == r + c or 
+            row - column == r - c for r, c in solution)
+    accept(solution):
+        len(solution) == N
+    first(parent):
+        column, _ = parent
+        if column >= N:
+            return None
+        return (column + 1, 1)
+    next(child):
+        column, row = child
+        if row >= N:
+            return None
+        return (column, row + 1)
+    # The above is the bare minimum, perhaps these following three should be optional?
+    # With the default behavior being append/pop/print? If these are
+    # made optional then the encoding is whittled down to 20 easy to read lines.
+    add(solution, node):
+        solution.add(node)
+    remove(solution):
+        solution.pop()
+    output(solution):
+        print(solution)
+
+
+RED = 0
+BLUE = 1
+GREEN = 2
+
+MAP = [(0, 1), (1, 2), (2, 3), (3, 0)]
+
+backtrack on (0, RED):
+    reject(solution, candidate):
+        vertex, color = candidate
+        # Find all edges that contain the candidate vertex.
+        edges = (edge for edge in MAP if vertex in edge)
+        # Find all neighbors to the candidate vertex.
+        neighbors = (source if source != vertex else destination for source, destination in edges)
+        # Return True if any neighbor has already been colored the same color as the candidate vertex.
+        return any(neighbor < len(P) and P[neighbor][1] == color for neighbor in neighbors)
+    accept(solution):
+        return len(P) == len(MAP)
+    first(parent);
+        vertex, color = parent
+        return None if vertex >= len(MAP) - 1 else (vertex + 1, RED)
+    next(child):
+        vertex, color = child
+        return None if color >= GREEN else (vertex, color + 1)

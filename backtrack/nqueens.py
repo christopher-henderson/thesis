@@ -1,6 +1,6 @@
 from backtrack import backtrack
 
-N = 4
+N = 8
 
 
 def first(candidate):
