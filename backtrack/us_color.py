@@ -159,20 +159,25 @@ class State(object):
 
     @staticmethod
     def output(solution):
+        global num_solutions
+        num_solutions += 1
+        if num_solutions % 1000 is 0:
+            print(num_solutions)
+
         # Get the first solution and dump it out to CSV, otherwise this will just go on for
-        # quite some time. Supposedly there are over 19 trillion solutions 0_0
-        color_map = {
-            0: 'red',
-            1: 'blue',
-            2: 'green',
-            3: 'yellow'
-        }
-        with open(os.path.join(db, 'us_map_coloring.csv'), 'w+') as s:
-            s.write('state, color\n')
-            for row in solution:
-                r_str = str(row)[1:-1] + '\n'
-                s.write(r_str)
-        exit(0)
+        # quite some time. Supposedly there are over 19 trillion solutions 0_0 
+        # color_map = {
+        #     0: 'red',
+        #     1: 'blue',
+        #     2: 'green',
+        #     3: 'yellow'
+        # }
+        # with open(os.path.join(db, 'us_map_coloring.csv'), 'w+') as s:
+        #     s.write('state, color\n')
+        #     for row in solution:
+        #         r_str = str(row)[1:-1] + '\n'
+        #         s.write(r_str)
+        # exit(0)
 
     @classmethod
     def construct_map(cls):

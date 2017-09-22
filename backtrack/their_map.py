@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# https://codereview.stackexchange.com/questions/44521/constraint-programming-map-color-problem
+
 def check_valid(graph):
     for node,nexts in graph.iteritems():
         assert(node not in nexts) # # no node linked to itself
