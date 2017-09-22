@@ -33,6 +33,7 @@ LUCKY_STRIKE = 'Lucky Strike'
 PARLIAMENTS = 'Parliaments'
 t = 0
 
+
 class House(object):
 
 	COLORS = {RED, BLUE, GREEN, YELLOW, IVORY}
@@ -40,6 +41,38 @@ class House(object):
 	NATIONALITIES = {ENGLISH, SPANISH, UKRAINIAN, NORWEGIAN, JAPANESE}
 	PET = {ZEBRA, DOG, SNAILS, FOX, HORSE}
 	CIGARETTE = {OLD_GOLD, KOOLS, CHESTERFIELDS, LUCKY_STRIKE, PARLIAMENTS}
+
+	STATE = {
+		RED: None,
+		BLUE: None,
+		GREEN: None,
+		YELLOW: None,
+		IVORY: None,
+
+		WATER: None,
+		COFFEE: None,
+		TEA: None,
+		MILK: None,
+		ORANGE_JUICE: None,
+
+		ENGLISH: None,
+		SPANISH: None,
+		UKRAINIAN: None,
+		NORWEGIAN: None,
+		JAPANESE: None,
+
+		ZEBRA: None,
+		DOG: None,
+		SNAILS: None,
+		FOX: None,
+		HORSE: None,
+
+		OLD_GOLD: None,
+		KOOLS: None,
+		CHESTERFIELDS: None,
+		LUCKY_STRIKE: None,
+		PARLIAMENTS: None,
+	}
 
 	@classmethod
 	def init_houses(cls, num):
@@ -62,74 +95,67 @@ class House(object):
 		self.left = None
 		self.right = None
 
-	@staticmethod
-	def reject(s, candidate):
-		solution = s + [candidate]
-		reject =  (
-			any(house.nationality == ENGLISH and house.color != RED for house in solution) or
-			any(house.nationality == SPANISH and house.pet != DOG for house in solution) or
-			any(house.drink == COFFEE and house.color != GREEN for house in solution) or
-			any(house.nationality == UKRAINIAN and house.drink != TEA for house in solution) or
-			any(house.color == GREEN and (house.left is None or house.left.color != IVORY) for house in solution) or
-			any(house.cigarette == OLD_GOLD and house.pet != SNAILS for house in solution) or
-			any(house.cigarette == KOOLS and house.color != YELLOW for house in solution) or
-			len(solution) >= 3 and solution[len(solution) // 2].drink != MILK or
-			solution[0].nationality != NORWEGIAN or
-			any(house.cigarette == CHESTERFIELDS and (
-				(house.left is not None and house.left.pet != FOX) and
-				(house.right is not None and house.right.pet != FOX)
-				) for house in solution
-			) or
-			any(house.cigarette == KOOLS and (
-				(house.left is not None and house.left.pet != HORSE) and
-				(house.right is not None and house.right.pet != HORSE)
-				) for house in solution
-			) or
-			any(house.cigarette == LUCKY_STRIKE and house.drink != ORANGE_JUICE for house in solution) or
-			any(house.nationality == JAPANESE and house.cigarette != PARLIAMENTS for house in solution) or
-			any(house.nationality == NORWEGIAN and (
-				(house.left is not None and house.left.color != BLUE) and
-				(house.right is not None and house.right.color != BLUE)
-				) for house in solution
-			)
-		)
-		return reject
-
 	@classmethod
-	def accept(cls, solution):
-		print(len(solution))
-		global t
-		t += 1
-		return len(solution) == 5
-		# return (
-		# 	len(solution) == 5 and
-		# 	any(house.nationality == ENGLISH and house.color == RED for house in solution) and
-		# 	any(house.nationality == SPANISH and house.pet == DOG for house in solution) and
-		# 	any(house.drink == COFFEE and house.color == GREEN for house in solution) and
-		# 	any(house.nationality == UKRAINIAN and house.drink == TEA for house in solution) and
-		# 	any(house.color == GREEN and house.left is not None and house.left.color == IVORY for house in solution) and
-		# 	any(hocuse.cigarette == OLD_GOLD and house.pet == SNAILS for house in solution) and
-		# 	any(house.cigarette == KOOLS and house.color == YELLOW for house in solution) and
-		# 	solution[len(solution) // 2].drink == MILK and
-		# 	solution[0].nationality == NORWEGIAN and
+	def reject(cls, s, candidate):
+		solution = s + [candidate]
+		return (
+			cls.STATE[ENGLISH] is not None and cls.STATE[ENGLISH].color != RED or 
+			cls.STATE[SPANISH] is not None and cls.STATE[SPANISH].pet != DOG or
+			cls.STATE[COFFEE] is not None and cls.STATE[COFFEE].color != GREEN or
+			cls.STATE[UKRAINIAN] is not None and cls.STATE[UKRAINIAN].drink != TEA or
+			cls.STATE[GREEN] is not None and (cls.STATE[GREEN].left is None or cls.STATE[GREEN].left.color != IVORY) or
+			cls.STATE[OLD_GOLD] is not None and cls.STATE[OLD_GOLD].pet != SNAILS or 
+			cls.STATE[KOOLS] is not None and cls.STATE[KOOLS].color != YELLOW or
+			len(solution) >= 3 and solution[2].drink != MILK or
+			solution[0].nationality != NORWEGIAN or
+			cls.STATE[CHESTERFIELDS] is not None and not (
+				cls.STATE[CHESTERFIELDS].left is not None and cls.STATE[CHESTERFIELDS].left.pet == FOX or
+				cls.STATE[CHESTERFIELDS].right is not None and cls.STATE[CHESTERFIELDS].right.pet == FOX
+			) or
+			cls.STATE[KOOLS] is not None and not (
+				cls.STATE[KOOLS].left is not None and cls.STATE[KOOLS].left.pet == HORSE or
+				cls.STATE[KOOLS].right is not None and cls.STATE[KOOLS].right.pet == HORSE
+			) or
+			cls.STATE[LUCKY_STRIKE] is not None and cls.STATE[LUCKY_STRIKE].drink != ORANGE_JUICE or
+			cls.STATE[JAPANESE] is not None and cls.STATE[JAPANESE].cigarette != PARLIAMENTS or
+			solution[0].right is not None and solution[0].right.color != BLUE
+		)
+		# reject =  (
+		# 	any(house.nationality == ENGLISH and house.color != RED for house in solution) or
+		# 	any(house.nationality == SPANISH and house.pet != DOG for house in solution) or
+		# 	any(house.drink == COFFEE and house.color != GREEN for house in solution) or
+		# 	any(house.nationality == UKRAINIAN and house.drink != TEA for house in solution) or
+		# 	any(house.color == GREEN and (house.left is None or house.left.color != IVORY) for house in solution) or
+		# 	any(house.cigarette == OLD_GOLD and house.pet != SNAILS for house in solution) or
+		# 	any(house.cigarette == KOOLS and house.color != YELLOW for house in solution) or
+		# 	len(solution) >= 3 and solution[len(solution) // 2].drink != MILK or
+		# 	solution[0].nationality != NORWEGIAN or
 		# 	any(house.cigarette == CHESTERFIELDS and (
-		# 		house.left is not None and house.left.pet == FOX or
-		# 		house.right is not None and house.right.pet == FOX
+		# 		(house.left is not None and house.left.pet != FOX) and
+		# 		(house.right is not None and house.right.pet != FOX)
 		# 		) for house in solution
-		# 	) and
+		# 	) or
 		# 	any(house.cigarette == KOOLS and (
-		# 		house.left is not None and house.left.pet == HORSE or
-		# 		house.right is not None and house.right.pet == HORSE
+		# 		(house.left is not None and house.left.pet != HORSE) and
+		# 		(house.right is not None and house.right.pet != HORSE)
 		# 		) for house in solution
-		# 	) and
-		# 	any(house.cigarette == LUCKY_STRIKE and house.drink == ORANGE_JUICE for house in solution) and
-		# 	any(house.nationality == JAPANESE and house.cigarette == PARLIAMENTS for house in solution) and
+		# 	) or
+		# 	any(house.cigarette == LUCKY_STRIKE and house.drink != ORANGE_JUICE for house in solution) or
+		# 	any(house.nationality == JAPANESE and house.cigarette != PARLIAMENTS for house in solution) or
 		# 	any(house.nationality == NORWEGIAN and (
-		# 		house.left is not None and house.left.color == BLUE or
-		# 		house.right is not None and house.right.color == BLUE
+		# 		(house.left is not None and house.left.color != BLUE) and
+		# 		(house.right is not None and house.right.color != BLUE)
 		# 		) for house in solution
 		# 	)
 		# )
+		return False
+
+	@classmethod
+	def accept(cls, solution):
+		# print(len(solution))
+		global t
+		t += 1
+		return len(solution) == 5
 
 	def first(self):
 		if self.right is None:
@@ -148,6 +174,12 @@ class House(object):
 		self.nationality = configuration[2]
 		self.pet = configuration[3]
 		self.cigarette = configuration[4]
+
+		self.STATE[self.color] = self
+		self.STATE[self.drink] = self
+		self.STATE[self.nationality] = self
+		self.STATE[self.pet] = self
+		self.STATE[self.cigarette] = self
 
 		self.COLORS.remove(self.color)
 		self.DRINKS.remove(self.drink)
@@ -168,6 +200,11 @@ class House(object):
 			self.NATIONALITIES.add(self.nationality)
 			self.PET.add(self.pet)
 			self.CIGARETTE.add(self.cigarette)
+		self.STATE[self.color] = None
+		self.STATE[self.drink] = None
+		self.STATE[self.nationality] = None
+		self.STATE[self.pet] = None
+		self.STATE[self.cigarette] = None
 		self.color = None
 		self.drink = None
 		self.nationality = None
