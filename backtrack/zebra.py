@@ -1,4 +1,5 @@
 from __future__ import division
+import time
 from backtrack import backtrack
 from itertools import product
 
@@ -96,8 +97,8 @@ class House(object):
 		self.right = None
 
 	@classmethod
-	def reject(cls, s, candidate):
-		solution = s + [candidate]
+	def reject(cls, solution, candidate):
+		solution = solution + [candidate]
 		return (
 			cls.STATE[ENGLISH] is not None and cls.STATE[ENGLISH].color != RED or 
 			cls.STATE[SPANISH] is not None and cls.STATE[SPANISH].pet != DOG or
@@ -120,35 +121,6 @@ class House(object):
 			cls.STATE[JAPANESE] is not None and cls.STATE[JAPANESE].cigarette != PARLIAMENTS or
 			solution[0].right is not None and solution[0].right.color != BLUE
 		)
-		# reject =  (
-		# 	any(house.nationality == ENGLISH and house.color != RED for house in solution) or
-		# 	any(house.nationality == SPANISH and house.pet != DOG for house in solution) or
-		# 	any(house.drink == COFFEE and house.color != GREEN for house in solution) or
-		# 	any(house.nationality == UKRAINIAN and house.drink != TEA for house in solution) or
-		# 	any(house.color == GREEN and (house.left is None or house.left.color != IVORY) for house in solution) or
-		# 	any(house.cigarette == OLD_GOLD and house.pet != SNAILS for house in solution) or
-		# 	any(house.cigarette == KOOLS and house.color != YELLOW for house in solution) or
-		# 	len(solution) >= 3 and solution[len(solution) // 2].drink != MILK or
-		# 	solution[0].nationality != NORWEGIAN or
-		# 	any(house.cigarette == CHESTERFIELDS and (
-		# 		(house.left is not None and house.left.pet != FOX) and
-		# 		(house.right is not None and house.right.pet != FOX)
-		# 		) for house in solution
-		# 	) or
-		# 	any(house.cigarette == KOOLS and (
-		# 		(house.left is not None and house.left.pet != HORSE) and
-		# 		(house.right is not None and house.right.pet != HORSE)
-		# 		) for house in solution
-		# 	) or
-		# 	any(house.cigarette == LUCKY_STRIKE and house.drink != ORANGE_JUICE for house in solution) or
-		# 	any(house.nationality == JAPANESE and house.cigarette != PARLIAMENTS for house in solution) or
-		# 	any(house.nationality == NORWEGIAN and (
-		# 		(house.left is not None and house.left.color != BLUE) and
-		# 		(house.right is not None and house.right.color != BLUE)
-		# 		) for house in solution
-		# 	)
-		# )
-		return False
 
 	@classmethod
 	def accept(cls, solution):
@@ -223,5 +195,7 @@ class House(object):
 
 first = House.init_houses(5)
 first.next()
-backtrack(first, House.first, House.next, House.reject, House.accept)
+start = time.time()
+backtrack(first, House.first, House.next, House.reject, House.accept, single_solution=True)
+print(time.time() - start)
 print(t)

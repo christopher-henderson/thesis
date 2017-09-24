@@ -7,7 +7,7 @@ def remove(solution):
 def output(solution):
     print(solution)
 
-def backtrack(root, first, next, reject, accept, add=add, remove=remove, output=output):
+def backtrack(root, first, next, reject, accept, add=add, remove=remove, output=output, single_solution=False):
     root_stack = list()
     solution = list()
 
@@ -21,6 +21,8 @@ def backtrack(root, first, next, reject, accept, add=add, remove=remove, output=
             add(solution, candidate)
             if accept(solution):
                 output(solution)
+                if single_solution:
+                    return
                 remove(solution)
                 candidate = next(candidate)
                 continue
