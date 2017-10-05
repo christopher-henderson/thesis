@@ -39,46 +39,20 @@ NATIONALITIES = [ENGLISH, SPANISH, UKRAINIAN, NORWEGIAN, JAPANESE]
 PET = [ZEBRA, DOG, SNAILS, FOX, HORSE]
 CIGARETTE = [OLD_GOLD, KOOLS, CHESTERFIELDS, LUCKY_STRIKE, PARLIAMENTS]
 
-configuration = [[None for _ in range(5)] for _ in range(5)]
-for index in range(5):
-	configuration[index][0] = COLORS[index]
-	configuration[index][1] = DRINKS[index]
-	configuration[index][2] = NATIONALITIES[index]
-	configuration[index][3] = PET[index]
-	configuration[index][4] = CIGARETTE[index]
+ATTRS = [COLORS, DRINKS, NATIONALITIES, PET, CIGARETTE]
+
+# configuration = [[None for _ in range(5)] for _ in range(5)]
+# for index in range(5):
+# 	configuration[index][0] = COLORS[index]
+# 	configuration[index][1] = DRINKS[index]
+# 	configuration[index][2] = NATIONALITIES[index]
+# 	configuration[index][3] = PET[index]
+# 	configuration[index][4] = CIGARETTE[index]
+
 
 # print(configuration)
-conf = configuration
+# conf = configuration
 # conf[0][0], conf[1][0], conf[2][0], conf[3][0], conf[4][0] = conf[4][0], conf[0][0], conf[1][0], conf[2][0], conf[3][0]
-
-def _next():
-	def inner():
-		yield conf
-		for _ in range(5):
-			for _ in range(5):
-				for _ in range(5):
-					for _ in range(5):
-						for i in range(5):
-							# print(i)
-							shift(4)
-							yield conf
-						shift(3)
-					shift(2)
-				shift(1)
-			shift(0)
-	gen = inner()
-	def nexter(_):
-		try:
-			return next(gen)
-		except:
-			return None
-	return nexter
-
-nexter = _next()
-
-def shift(val):
-	conf[0][val], conf[1][val], conf[2][val], conf[3][val], conf[4][val] = conf[4][val], conf[0][val], conf[1][val], conf[2][val], conf[3][val]
-
 
 color = 0
 drink = 1
@@ -86,58 +60,112 @@ nationality = 2
 pet = 3
 cigarette = 4
 
-def first(_):
-	return nexter(_)
+class Next(object):
 
-def accept(_):
+	def __init__(self):
+		# self.conf = [list(_) for _ in zip(COLORS, DRINKS, NATIONALITIES, PET, CIGARETTE)]
+		self.conf = [[None for _ in range(5)] for _ in range(5)]
+		self.next = self.permutations(color)
+
+	def __call__(self, *args, **kwargs):
+		try:
+			return next(self.next)
+		except StopIteration:
+			return None
+
+	# def _next(self):
+	# 	yield self.conf
+	# 	for a in range(5):
+	# 		for b in range(5):
+	# 			for c in range(5):
+	# 				for d in range(5):
+	# 					for e in range(5):
+	# 						for _ in range(5):
+	# 							self.shift(cigarette)
+	# 							yield self.conf
+	# 						self.swap(e, (e + 1) % 5, cigarette)
+	# 						yield self.conf
+	# 					self.shift(pet)
+	# 				self.shift(nationality)
+	# 			self.shift(drink)
+	# 		self.shift(color)
+
+
+	def permutations(self, attr):
+		if attr >= 5:
+			yield self.conf
+		else:
+			for configuration in permutations(ATTRS[attr], 5):
+				self.conf[0][attr], self.conf[1][attr], self.conf[2][attr], self.conf[3][attr], self.conf[4][attr] = configuration
+				yield from self.permutations(attr + 1)
+		# for combination of this attr:
+		# 	for every combination of subattrs:
+		# 		yield self.conf
+
+
+	def shift(self, val):
+		self.conf[0][val], self.conf[1][val], self.conf[2][val], self.conf[3][val], self.conf[4][val] = self.conf[4][val], self.conf[0][val], self.conf[1][val], self.conf[2][val], self.conf[3][val]
+
+	def swap(self, a, b, attr):
+		self.conf[a][attr], self.conf[b][attr] = self.conf[b][attr], self.conf[a][attr]
+
+
+
+def accept(solution):
 	return True
 
+t = 0
 def reject(_, candidate):
 	if candidate[len(candidate) // 2][drink] != MILK:
+		# print(-2)
 		return True
 	if candidate[0][nationality] != NORWEGIAN:
+		# print(-1)
 		return True
 	if candidate[1][color] != BLUE:
+		# print(0)
 		return True
 
 	for index, house in enumerate(candidate):
 		if house[nationality] == ENGLISH and house[color] != RED:
-			print(1)
+			# print(1)
 			return True
 		if house[nationality] == SPANISH and house[pet] != DOG:
-			print(2)
+			# print(2)
 			return True
 		if house[drink] == COFFEE and house[color] != GREEN:
-			print(3)
+			# print(3)
 			return True
 		if house[nationality] == UKRAINIAN and house[drink] != TEA:
-			print(4)
+			# print(4)
 			return True
-		if house[color] == GREEN and index is 0 or candidate[house - 1][color] != IVORY:
-			print(5)
+		if house[color] == GREEN and index is 0 or candidate[index - 1][color] != IVORY:
+			# print(5)
 			return True
 		if house[cigarette] == OLD_GOLD and house[pet] != SNAILS:
-			print(6)
+			# print(6)
 			return True
 		if house[cigarette] == KOOLS and house[color] != YELLOW:
-			print(7)
+			# print(7)
 			return True
 		if house[cigarette] == CHESTERFIELDS and not (
 			False if index == len(candidate) - 1 else candidate[index + 1][pet] == FOX or
 			False if index == 0 else candidate[index - 1][pet] == FOX):
-			print(8)
+			# print(8)
 			return True
 		if house[cigarette] == KOOLS and not (
 			False if index == len(candidate) - 1 else candidate[index + 1][pet] == HORSE or
 			False if index == 0 else candidate[index - 1][pet] == HORSE):
-			print(9)
+			# print(9)
 			return True
 		if house[cigarette] == LUCKY_STRIKE and house[drink] != ORANGE_JUICE:
-			print(10)
+			# print(10)
 			return True
 		if house[nationality] == JAPANESE and house[cigarette] != PARLIAMENTS:
-			print(11)
+			# print(11)
 			return True
 	return False
 
-backtrack(1, first, nexter, reject, accept)
+n = Next()
+
+backtrack(1, n, n, reject, accept)

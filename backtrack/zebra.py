@@ -99,7 +99,7 @@ class House(object):
 	@classmethod
 	def reject(cls, solution, candidate):
 		solution = solution + [candidate]
-		return (
+		r = (
 			cls.STATE[ENGLISH] is not None and cls.STATE[ENGLISH].color != RED or 
 			cls.STATE[SPANISH] is not None and cls.STATE[SPANISH].pet != DOG or
 			cls.STATE[COFFEE] is not None and cls.STATE[COFFEE].color != GREEN or
@@ -121,12 +121,13 @@ class House(object):
 			cls.STATE[JAPANESE] is not None and cls.STATE[JAPANESE].cigarette != PARLIAMENTS or
 			solution[0].right is not None and solution[0].right.color != BLUE
 		)
+		if r and len(solution) == 5:
+			global t
+			t += 1
+		return r
 
 	@classmethod
 	def accept(cls, solution):
-		# print(len(solution))
-		global t
-		t += 1
 		return len(solution) == 5
 
 	def first(self):

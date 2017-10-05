@@ -20,7 +20,7 @@ def backtrack(root, first, next, reject, accept, add=add, remove=remove, output=
                 continue
             add(solution, candidate)
             if accept(solution):
-                output(solution)
+                # output(solution)
                 if single_solution:
                     return
                 remove(solution)
