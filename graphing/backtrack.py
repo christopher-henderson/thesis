@@ -10,9 +10,9 @@ class Node(object):
     NODE_NODES = dict()
 
     NODE_WHITE = 'white'
-    NODE_GREEN = 'green'
-    NODE_RED = 'lightsalmon'
-    NODE_BLUE = 'darkestindigo'
+    NODE_GREEN = '#839356'
+    NODE_RED = '#CD594A'
+    NODE_BLUE = '#3C6478'
 
     def __init__(self, node, parent=None):
         self.NODE_parent = parent
@@ -43,8 +43,7 @@ class Node(object):
             nodes.append({
                 'id': node.NODE_id, 
                 'label': str(node), 
-                'color': node.NODE_color
-                # 'font': {'color':'black'},
+                'color': node.NODE_color,
             })
             if node.NODE_parent is not None:
                 edges.append({"from": node.NODE_parent, "to": node.NODE_id})
