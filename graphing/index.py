@@ -1,0 +1,86 @@
+INDEX = '''
+<!doctype html>
+<html>
+<head>
+  <title>Network | Basic usage</title>
+
+  <script type="text/javascript" src="node_modules/vis/dist/vis.js"></script>
+  <link href="node_modules/vis/dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+
+  <style type="text/css">
+    #mynetwork {
+      width: 600px;
+      height: 400px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+
+<p>
+  Create a simple network with some nodes and edges.
+</p>
+
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+  // create an array with nodes
+  var nodes = new vis.DataSet(%%NODES%%);
+  var edges = new vis.DataSet(%%EDGES%%);
+
+  // create an array with edges
+  // var edges = new vis.DataSet([
+  //   {from: 1, to: 3},
+  //   {from: 1, to: 2},
+  //   {from: 2, to: 4},
+  //   {from: 2, to: 5},
+  //   {from: 3, to: 3}
+  // ]);
+
+  // var nodes = new vis.DataSet([{'id': 1, 'label': '(1, 1)', 'color': 'blue'}, {'id': 2, 'label': '(2, 1)', 'color': 'red'}, {'id': 3, 'label': '(2, 2)', 'color': 'red'}, {'id': 4, 'label': '(2, 3)', 'color': 'blue'}, {'id': 5, 'label': '(3, 1)', 'color': 'red'}, {'id': 6, 'label': '(3, 2)', 'color': 'red'}, {'id': 7, 'label': '(3, 3)', 'color': 'red'}, {'id': 8, 'label': '(3, 4)', 'color': 'red'}, {'id': 9, 'label': '(2, 4)', 'color': 'blue'}, {'id': 10, 'label': '(3, 1)', 'color': 'red'}, {'id': 11, 'label': '(3, 2)', 'color': 'blue'}, {'id': 12, 'label': '(4, 1)', 'color': 'red'}, {'id': 13, 'label': '(4, 2)', 'color': 'red'}, {'id': 14, 'label': '(4, 3)', 'color': 'red'}, {'id': 15, 'label': '(4, 4)', 'color': 'red'}, {'id': 16, 'label': '(3, 3)', 'color': 'red'}, {'id': 17, 'label': '(3, 4)', 'color': 'red'}, {'id': 18, 'label': '(1, 2)', 'color': 'green'}, {'id': 19, 'label': '(2, 1)', 'color': 'red'}, {'id': 20, 'label': '(2, 2)', 'color': 'red'}, {'id': 21, 'label': '(2, 3)', 'color': 'red'}, {'id': 22, 'label': '(2, 4)', 'color': 'green'}, {'id': 23, 'label': '(3, 1)', 'color': 'green'}, {'id': 24, 'label': '(4, 1)', 'color': 'red'}, {'id': 25, 'label': '(4, 2)', 'color': 'red'}, {'id': 26, 'label': '(4, 3)', 'color': 'green'}, {'id': 27, 'label': '(4, 4)', 'color': 'red'}, {'id': 28, 'label': '(3, 2)', 'color': 'red'}, {'id': 29, 'label': '(3, 3)', 'color': 'red'}, {'id': 30, 'label': '(3, 4)', 'color': 'red'}, {'id': 31, 'label': '(1, 3)', 'color': 'green'}, {'id': 32, 'label': '(2, 1)', 'color': 'green'}, {'id': 33, 'label': '(3, 1)', 'color': 'red'}, {'id': 34, 'label': '(3, 2)', 'color': 'red'}, {'id': 35, 'label': '(3, 3)', 'color': 'red'}, {'id': 36, 'label': '(3, 4)', 'color': 'green'}, {'id': 37, 'label': '(4, 1)', 'color': 'red'}, {'id': 38, 'label': '(4, 2)', 'color': 'green'}, {'id': 39, 'label': '(4, 3)', 'color': 'red'}, {'id': 40, 'label': '(4, 4)', 'color': 'red'}, {'id': 41, 'label': '(2, 2)', 'color': 'red'}, {'id': 42, 'label': '(2, 3)', 'color': 'red'}, {'id': 43, 'label': '(2, 4)', 'color': 'red'}, {'id': 44, 'label': '(1, 4)', 'color': 'blue'}, {'id': 45, 'label': '(2, 1)', 'color': 'blue'}, {'id': 46, 'label': '(3, 1)', 'color': 'red'}, {'id': 47, 'label': '(3, 2)', 'color': 'red'}, {'id': 48, 'label': '(3, 3)', 'color': 'blue'}, {'id': 49, 'label': '(4, 1)', 'color': 'red'}, {'id': 50, 'label': '(4, 2)', 'color': 'red'}, {'id': 51, 'label': '(4, 3)', 'color': 'red'}, {'id': 52, 'label': '(4, 4)', 'color': 'red'}, {'id': 53, 'label': '(3, 4)', 'color': 'red'}, {'id': 54, 'label': '(2, 2)', 'color': 'blue'}, {'id': 55, 'label': '(3, 1)', 'color': 'red'}, {'id': 56, 'label': '(3, 2)', 'color': 'red'}, {'id': 57, 'label': '(3, 3)', 'color': 'red'}, {'id': 58, 'label': '(3, 4)', 'color': 'red'}, {'id': 59, 'label': '(2, 3)', 'color': 'red'}, {'id': 60, 'label': '(2, 4)', 'color': 'red'}]);
+
+  // var edges = new vis.DataSet([{'from': 1, 'to': 2}, {'from': 1, 'to': 3}, {'from': 1, 'to': 4}, {'from': 4, 'to': 5}, {'from': 4, 'to': 6}, {'from': 4, 'to': 7}, {'from': 4, 'to': 8}, {'from': 1, 'to': 9}, {'from': 9, 'to': 10}, {'from': 9, 'to': 11}, {'from': 11, 'to': 12}, {'from': 11, 'to': 13}, {'from': 11, 'to': 14}, {'from': 11, 'to': 15}, {'from': 9, 'to': 16}, {'from': 9, 'to': 17}, {'from': 18, 'to': 19}, {'from': 18, 'to': 20}, {'from': 18, 'to': 21}, {'from': 18, 'to': 22}, {'from': 22, 'to': 23}, {'from': 23, 'to': 24}, {'from': 23, 'to': 25}, {'from': 23, 'to': 26}, {'from': 23, 'to': 27}, {'from': 22, 'to': 28}, {'from': 22, 'to': 29}, {'from': 22, 'to': 30}, {'from': 31, 'to': 32}, {'from': 32, 'to': 33}, {'from': 32, 'to': 34}, {'from': 32, 'to': 35}, {'from': 32, 'to': 36}, {'from': 36, 'to': 37}, {'from': 36, 'to': 38}, {'from': 36, 'to': 39}, {'from': 36, 'to': 40}, {'from': 31, 'to': 41}, {'from': 31, 'to': 42}, {'from': 31, 'to': 43}, {'from': 44, 'to': 45}, {'from': 45, 'to': 46}, {'from': 45, 'to': 47}, {'from': 45, 'to': 48}, {'from': 48, 'to': 49}, {'from': 48, 'to': 50}, {'from': 48, 'to': 51}, {'from': 48, 'to': 52}, {'from': 45, 'to': 53}, {'from': 44, 'to': 54}, {'from': 54, 'to': 55}, {'from': 54, 'to': 56}, {'from': 54, 'to': 57}, {'from': 54, 'to': 58}, {'from': 44, 'to': 59}, {'from': 44, 'to': 60}]);
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {
+        nodes: {
+            shape: 'dot',
+            size: 30,
+            font: {
+                size: 32
+            },
+            // borderWidth: 2,
+            shadow:true
+        },
+        layout: {
+            hierarchical: {
+                direction: "UD",
+                sortMethod: "directed"
+            }
+        },
+        interaction: {dragNodes :false},
+        physics: {
+            enabled: false
+        },
+        configure: {
+          filter: function (option, path) {
+              if (path.indexOf('hierarchical') !== -1) {
+                  return true;
+              }
+              return false;
+          },
+          showButton:false
+        }
+    };
+  var network = new vis.Network(container, data, options);
+</script>
+
+
+</body>
+</html>
+'''
