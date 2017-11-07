@@ -1,4 +1,6 @@
-
+import subprocess
+import shlex
+import time
 from index import INDEX
 
 GRAPH = set()
@@ -50,6 +52,7 @@ class Node(object):
         rendered_html = INDEX.replace('%%EDGES%%', str(edges)).replace('%%NODES%%', str(nodes))
         with open('index.html', 'w+') as index:
             index.write(rendered_html)
+        subprocess.Popen(["open  index.html"], shell=True)
 
 
 def _add(solution, candidate):
@@ -73,7 +76,7 @@ def __accept(accept_function):
 
 def __reject(reject_function):
     def inner(solution, candidate):
-        if reject_function(solution, candidate):
+        if reject_function(solution, candidate.NODE_node):
             candidate.NODE_color = Node.NODE_RED
             return True
         return False
@@ -81,24 +84,32 @@ def __reject(reject_function):
 
 def __child(child_function):
     def inner(root):
-        child = child_function(root)
+        child = child_function(root.NODE_node)
         return None if child is None else Node(child, parent=root.NODE_id)
     return inner
 
-def __sibling(silbing_function):
+def __sibling(sibling_function):
     def inner(node):
-        sibling = silbing_function(node)
+        sibling = sibling_function(node.NODE_node)
         return None if sibling is None else Node(sibling, parent=node.NODE_parent)
+    return inner
+
+def __append(append_function):
+    def inner(solution, candidate):
+        solution.append(candidate)
+        if append_function is not None:
+            append_function(candidate.NODE_node)
     return inner
 
 ACCEPT = '__accept__'
 REJECT = '__reject__'
 CHILD = '__child__'
 SIBLING = '__sibling__'
-ADD = '__add__'
+ADD = '__append__'
 REMOVE = '__remove__'
 OUTPUT = '__output__'
 SINGLE_SOLUTION = '__single_solution__'
+
 
 def backtrack(root):
     # Procedure resolutions.
@@ -106,7 +117,7 @@ def backtrack(root):
     reject = __reject(getattr(type(root), REJECT))
     child = __child(getattr(type(root), CHILD))
     sibling = __sibling(getattr(type(root), SIBLING))
-    add = getattr(type(root), ADD) if hasattr(root, ADD) else _add
+    add = __append(getattr(type(root), ADD) if hasattr(root, ADD) else None)
     remove = getattr(type(root), REMOVE) if hasattr(root, REMOVE) else _remove
     output = getattr(type(root), OUTPUT) if hasattr(root, OUTPUT) else _output
 
@@ -152,3 +163,4 @@ def backtrack(root):
             if root is not None:
                 add(solution, root)
     Node.NODE__OUTPUT()
+    

@@ -4,7 +4,7 @@ from backtrack import backtrack
 
 class NQueens(object):
 
-    N = 5
+    N = 4
 
     def __init__(self, column, row):
         self.column = column

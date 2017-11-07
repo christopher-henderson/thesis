@@ -1,0 +1,52 @@
+class Base(object):
+
+	def __init__(self, parent, siblings, tokens):
+		self.tokens = tokens
+		self.parent = parent
+		self.siblings = iter(siblings) if isinstance(siblings, list) else siblings
+		self.rules = iter(self.Rules)
+
+	def __sibling__(self):
+		try:
+			return next(self.siblings)(self.parent, self.siblings, self.tokens)
+		except StopIteration:
+			return None
+
+	def __child__(self):
+		try:
+			return next(self.rules)(self, self.rules, self.tokens)
+		except StopIteration:
+			return None
+
+class Program(Base):
+
+	SOLUTION = []
+
+	Rules = [S, SL]
+
+	def __init__(self, tokens):
+		super(Program, self).__init__(None, [], tokens)
+
+	def reject(self, solution, candidate):
+		backtrack(candidate)
+		return not (self.succeeded and len(self.tokens) is 0):
+
+	def accept(self):
+		return True
+
+	def accept(SOLUTION):
+		pass
+
+	def child(self):
+		return S(self, self.tokens, Rules)
+
+	def sibling(self):
+		return None
+
+
+class Add(Base):
+
+	Rules = [(Integer, Atom('+'), Integer)]
+
+	def reject(self, solution, candidate):
+		

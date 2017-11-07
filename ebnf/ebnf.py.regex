@@ -1,0 +1,123 @@
+import re
+
+class Rule(object):
+
+	@classmethod
+	def build(cls):
+		r = []
+		for rule in cls.RULES:
+			if type(rule) == str:
+				r.append(rule)
+			elif type(rule) == tuple:
+				r.append(''.join(sr.build() if type(sr) == type and issubclass(sr, Rule) else sr for sr in rule))
+			elif issubclass(rule, Rule):
+				r.append(rule.build())
+		return '|'.join('(' + rule + ')' for rule in r)
+
+	@classmethod
+	def mod(cls, m):
+		return '(' + cls.build() + ')' + m
+
+class DigitNZ(Rule):
+
+	RULES = [
+		'1', 
+		'2', 
+		'3', 
+		'4', 
+		'5', 
+		'6', 
+		'7', 
+		'8', 
+		'9'
+	]
+
+class Digit(Rule):
+
+	RULES = [
+		'0',
+		DigitNZ
+	]
+
+
+class Natural(Rule):
+
+	RULES = [
+		(DigitNZ, Digit.mod("*"))
+	]
+
+# print(Digit.mod("*"))
+
+# r = re.compile(Natural.build())
+# print(Natural.build())
+# print(r.match('0'))
+
+
+class Integer(Rule):
+
+	RULES = [
+		'0',
+		('-?', Natural)
+	]
+
+print(Integer.build())
+
+r = re.compile(Integer.build())
+print(r.fullmatch("1234"))
+
+class EBNF(object):
+
+	# An EBNF is either terminal or if
+
+	# DigitNZ := "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+	# Digit := "0" | DigitNZ
+	# N := DigitNZ, Digit*
+	# Int := "0" | "-"?, N
+
+	# Add := Int, "+", Int
+
+	# Program := S | SL
+	# SL := S, SL
+	# S := Add
+
+	TOKENS = ['42', '+', '5', '0', '+', '11']
+
+	# Example Program:
+	#	42 + 5
+	#	0 + 11
+	#
+	# Tokens = [42, +, 5, 0, +, 11]
+	#
+	# 1. Program is a Rule.
+	# 2. Program's children are 'S' and 'SL', they are Rules.
+	# 3. Select 'S' as the first child.
+	# 4. Should we reject S?
+	#	Replace S. (S has to replace itself? OOP?)
+	#	If replacements fails
+	#	or tokens remain after replacement
+	#		true
+	#	S is replaced with Add.
+	#	There are tokens left over.
+	#	Reject.
+	# 5. Select 'SL' as sibling..
+	# 6. Should we reject SL?
+	#	Replace SL.
+	#	This runs backtrack on S and SL.
+	# 	Resolves to [Add, Add]
+	#	return false
+	# 7. Accept
+	# 8. Output
+
+
+	# procedure Replace
+	# 	S has one rule, Add.
+	#	Add consumes three tokens (42, + , 5).
+	#	Add succeeds.
+	#	Add replaces S.
+
+
+	def __init__(self):
+		pass
+
+	def __child__(self):
+		pass
