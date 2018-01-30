@@ -3,7 +3,9 @@
 
 import re
 
-regex = r"backtrack\s+on\s+(.*):\n\s+reject\(\s*(.*)\s*,\s*(.*)\s*\):\n((.*\n)*)\s+accept\(\s*(.*)\s*\):\n((.*\n)*)\s+children\(\s*(.*)\s*\):((.*\n)*)"
+# https://regex101.com/r/ObsKny/1/
+
+regex = r"backtrack\s+on\s+(.*):\n\s+reject\(\s*(.*)\s*,\s*(.*)\s*\):\n((?:.|\n)*)accept\(\s*(.*)\s*\):\n((?:.|\n)*)children\(\s*(.*)\s*\):\n((?:.|\n)*)\n"
 
 test_str = ("backtrack on (1, 1):\n"
 	"	reject(solution, candidate):\n"
