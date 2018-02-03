@@ -2,7 +2,7 @@ package main
 
 import "log"
 
-var N = 8
+var N = 4
 
 type Queen struct {
 	Column int
@@ -75,16 +75,14 @@ func backtrack(root Queen) {
 	solution := SolutionStack{}
 
 	c := children(root)
-
+	winners := 0
 	var candidate Queen
 	var ok bool
 	var rse RootStackEntry
 	for {
-		log.Println(solution)
 		if candidate, ok = <-c; !ok {
 			_, solution = spop(solution)
 			if len(stack) == 0 {
-				log.Println("NO ANSWER.")
 				return
 			}
 			rse, stack = rpop(stack)
@@ -92,14 +90,17 @@ func backtrack(root Queen) {
 			c = rse.Children
 			continue
 		}
-		if reject(candidate, solution) {
+		r := reject(candidate, solution)
+		if r {
 			continue
 		}
 		solution = spush(solution, candidate)
-		if accept(solution) {
-			log.Println("WINNER")
+		a := accept(solution)
+		if a {
 			log.Println(solution)
-			return
+			_, solution = spop(solution)
+			winners++
+			continue
 		}
 		stack = rpush(stack, RootStackEntry{root, c})
 		root = candidate
@@ -114,18 +115,3 @@ func init() {
 func main() {
 	backtrack(Queen{0, 0})
 }
-
-// 1, 0, 0, 0, 0, 0, 0, 0,
-// 0, 0, 0, 0, 0, 0, 0, 0,
-// 0, 0, 0, 0, 1, 0, 0, 0,
-// 0, 0, 0, 0, 0, 0, 0, 0,
-// 0, 1, 0, 0, 0, 0, 0, 0,
-// 0, 0, 0, 1, 0, 0, 0, 0,
-// 0, 0, 0, 0, 0, 1, 0, 0,
-// 0, 0, 1, 0, 0, 0, 0, 0,
-// [
-// 1, 0, 0, 0,
-// 0, 0, 0, 0,
-// 0, 1, 0, 0,
-// 0, 0, 0, 0,
-// ]
