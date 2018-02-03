@@ -7,6 +7,7 @@ import re
 # 	https://regex101.com/r/ObsKny/1/
 
 regex = re.compile(r"backtrack\s+on\s+(?P<ROOT>.*):\n\s+reject\(\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*,\s*(?P<REJECT_PARAM_CANDIDATE>.*)\s*\):\n(?P<REJECT_BLOCK>(?:.|\n)*)accept\(\s*(?P<ACCEPT_PARAM_SOLUTION>.*)\s*\):\n(?P<ACCEPT_BLOCK>(?:.|\n)*)children\(\s*(?P<CHILDREN_PARAM_PARENT>.*)\s*\):\n(?P<CHILDREN_BLOCK>(?:.|\n)*)\n?")
+ret = re.compile("(return|yield)\s")
 
 class BacktrackFunction(object):
 
@@ -41,11 +42,16 @@ class BacktrackFunction(object):
 				break
 		return "".join(whitespace for _ in range(i))
 
+	def massage(self):
+		return ret.sub("return globals(), locals(), ", self.body)
+
 	def __str__(self):
+		# https://stackoverflow.com/questions/4484872/why-doesnt-exec-work-in-a-function-with-a-subfunction
 		return '''\
-def {N}({PARAMS}, **globals, **locals):
+def {N}(g, l, {PARAMS}):
+{INDENT}exec("") in locals(); globals().update(g); locals().update(l)
 {BODY}
-'''.format(N=self.name, PARAMS=", ".join(self.params), BODY=self.body)
+'''.format(N=self.name, INDENT=self.INDENT, PARAMS=", ".join(self.params), BODY=self.massage())
 
 
 class BacktrackModule(object):
