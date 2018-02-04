@@ -12,36 +12,6 @@ type Queen struct {
 	Row    int
 }
 
-// func reject(candidate Queen, solution []Queen) bool {
-// 	row, column := candidate.Row, candidate.Column
-// 	for _, q := range solution {
-// 		r, c := q.Row, q.Column
-// 		if row == r ||
-// 			column == c ||
-// 			row+column == r+c ||
-// 			row-column == r-c {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
-
-// func children(parent Queen) chan Queen {
-// 	column := parent.Column + 1
-// 	c := make(chan Queen, 0)
-// 	go func() {
-// 		defer close(c)
-// 		for r := 1; r < N+1; r++ {
-// 			c <- Queen{column, r}
-// 		}
-// 	}()
-// 	return c
-// }
-
-// func accept(solution []Queen) bool {
-// 	return len(solution) == N
-// }
-
 type RootStackEntry struct {
 	Parent   Queen
 	Children chan Queen
