@@ -37,6 +37,10 @@ func backtrack() {
 		/////////////////////
 		column := root.Column + 1
 		c := make(chan USERTYPE, 0)
+		if column > N {
+			close(c)
+			goto __ID_END_INIT_CHILDREN
+		}
 		go func() {
 			defer close(c)
 			for r := 1; r < N+1; r++ {
@@ -44,10 +48,10 @@ func backtrack() {
 			}
 		}()
 		__ID_c = c
-		goto INIT_CHILDREN
+		goto __ID_END_INIT_CHILDREN
 	}
 	////////////////////////////////////////////////////////
-INIT_CHILDREN:
+__ID_END_INIT_CHILDREN:
 
 	var __ID_candidate USERTYPE
 	var __ID_ok bool
@@ -55,7 +59,7 @@ INIT_CHILDREN:
 	for {
 		if __ID_candidate, __ID_ok = <-__ID_c; !__ID_ok {
 			if len(__ID_stack) == 0 {
-				return
+				break
 			}
 			__ID_solution = __ID_solution[:len(__ID_solution)-1]
 			__ID_se = __ID_stack[len(__ID_stack)-1]
@@ -101,7 +105,6 @@ INIT_CHILDREN:
 			// PARAMETER BINDINGS
 			solution := __ID_solution
 			/////////////////////
-
 			__ID_accept = len(solution) == N
 			goto __ID_END_ACCEPT
 		}
@@ -131,10 +134,10 @@ INIT_CHILDREN:
 				}
 			}()
 			__ID_c = c
-			goto __ID_END_NEXT_CHILD
+			goto __ID_END_CHILDREN
 		}
 		////////////////////////////////////////////////////////
-	__ID_END_NEXT_CHILD:
+	__ID_END_CHILDREN:
 	}
 }
 

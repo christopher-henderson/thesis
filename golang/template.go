@@ -20,14 +20,18 @@ const example = `
 package main
 
 type Queen struct {
-	Row    int
 	Column int
+	Row    int
 }
 
 func main() {
 	N := 8
+	winners := 0
 	search from Queen{0,0} (Queen) {
 		accept solution:
+			if len(solution) == N {
+				winners++
+			}
 			return len(solution) == N
 		reject candidate, solution:
 			row, column := candidate.Row, candidate.Column
@@ -44,6 +48,10 @@ func main() {
 		children parent:
 			column := parent.Column + 1
 			c := make(chan Queen, 0)
+			if column > N {
+				close(c)
+				return c
+			}
 			go func() {
 				defer close(c)
 				for r := 1; r < N+1; r++ {
@@ -52,34 +60,7 @@ func main() {
 			}()
 			return c
 	}
-
-
-	// search from Queen{0,0} (Queen) {
-	// 	accept solution:
-	// 		return len(solution) == N
-	// 	reject candidate, solution:
-	// 		row, column := candidate.Row, candidate.Column
-	// 		for _, q := range solution {
-	// 		    r, c := q.Row, q.Column
-	// 		    if row == r ||
-	// 		        column == c ||
-	// 		        row+column == r+c ||
-	// 		        row-column == r-c {
-	// 		        return true
-	// 		    }
-	// 		}
-	// 		return false
-	// 	children parent:
-	// 		column := parent.Column + 1
-	// 		c := make(chan Queen, 0)
-	// 		go func() {
-	// 			defer close(c)
-	// 			for r := 1; r < N+1; r++ {
-	// 				c <- Queen{column, r}
-	// 			}
-	// 		}()
-	// 		return c
-	// }
+	log.Println(winners)
 }
 `
 
@@ -117,7 +98,7 @@ func (s *Search) String() string {
 		"{REJECT_BODY}", s.Reject.Body,
 		"{ACCEPT_PARAM1}", s.Accept.ParamSolution,
 		"{ACCEPT_BODY}", s.Accept.Body,
-		"{CHILDREN_INIT_BODY}", s.ChildrenInit.Body)
+		"{CHILDREN_BODY}", s.Children.Body)
 	return r.Replace(template)
 }
 
@@ -140,7 +121,6 @@ for {
 	{CHILDREN_PARAM1} := __{ID}_root
 	/////////////////////
 	{CHILDREN_INIT_BODY}
-	goto __{ID}_END_INIT_CHILDREN
 }
 ////////////////////////////////////////////////////////
 __{ID}_END_INIT_CHILDREN:
@@ -151,7 +131,7 @@ var __{ID}_se __{ID}_StackEntry
 for {
 	if __{ID}_candidate, __{ID}_ok = <-__{ID}_c; !__{ID}_ok {
 		if len(__{ID}_stack) == 0 {
-			return
+			break
 		}
 		__{ID}_solution = __{ID}_solution[:len(__{ID}_solution)-1]
 		__{ID}_se = __{ID}_stack[len(__{ID}_stack)-1]
@@ -160,7 +140,6 @@ for {
 		__{ID}_c = __{ID}_se.Children
 		continue
 	}
-
 	var __{ID}_reject bool
 	////////////////////////////////////////////////////////
 	// USERLAND - REJECT
@@ -170,7 +149,6 @@ for {
 		{REJECT_PARAM2} := __{ID}_solution
 		/////////////////////
 		{REJECT_BODY}
-		goto __{ID}_END_REJECT
 	}
 	////////////////////////////////////////////////////////
 __{ID}_END_REJECT:
@@ -178,7 +156,6 @@ __{ID}_END_REJECT:
 		continue
 	}
 	__{ID}_solution = append(__{ID}_solution, __{ID}_candidate)
-
 	var __{ID}_accept bool
 	////////////////////////////////////////////////////////
 	// USERLAND - ACCEPT
@@ -187,7 +164,6 @@ __{ID}_END_REJECT:
 		{ACCEPT_PARAM1} := __{ID}_solution
 		/////////////////////
 		{ACCEPT_BODY}
-		goto __{ID}_END_ACCEPT
 	}
 	////////////////////////////////////////////////////////
 __{ID}_END_ACCEPT:
@@ -198,25 +174,17 @@ __{ID}_END_ACCEPT:
 	}
 	__{ID}_stack = append(__{ID}_stack, __{ID}_StackEntry{__{ID}_root, __{ID}_c})
 	__{ID}_root = __{ID}_candidate
-
 	////////////////////////////////////////////////////////
 	// USERLAND - CHILDREN
 	for {
 		// PARAMETER BINDINGS
 		{CHILDREN_PARAM1} := __{ID}_root
 		/////////////////////
-		{CHILDREN_INIT_BODY}
-		goto __{ID}_END_CHILDREN
+		{CHILDREN_BODY}
 	}
 	////////////////////////////////////////////////////////
 __{ID}_END_CHILDREN:
 }`
-
-// var signature = regexp.MustCompile(`\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<USER_TYPE>.*)\)\s+{\s*\n`)
-// var reject = regexp.MustCompile(`.*reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*):\n`) // ((.*\n?)*)
-
-// var signature_map = make_map(signature)
-// var reject_map = make_map(reject)
 
 func make_map(r *regexp.Regexp) map[string]int {
 	m := make(map[string]int, 0)
@@ -227,78 +195,6 @@ func make_map(r *regexp.Regexp) map[string]int {
 	}
 	return m
 }
-
-// func search_and_replace(text io.Reader, out io.Writer) {
-// 	in := bufio.NewReader(text)
-// 	id := 0
-// 	for l, err := in.ReadString('\n'); err == nil; l, err = in.ReadString('\n') {
-// 		if signature.Match([]byte(l)) {
-// 			l = parse_search(l, id, in, out)
-// 		}
-// 		if _, err := out.Write([]byte(l)); err != nil {
-// 			log.Panic(err)
-// 		}
-
-// 	}
-// }
-
-// func parse_search(l string, id int, in *bufio.Reader, out io.Writer) string {
-// 	match := signature.FindStringSubmatch(l)
-// 	root := match[signature_map["ROOT"]]
-// 	utype := match[signature_map["USER_TYPE"]]
-
-// 	var err error
-// 	open := 1
-// 	for l, err = in.ReadString('\n'); open != 0 && err == nil; l, err = in.ReadString('\n') {
-// 		for _, c := range l {
-// 			if c == '{' {
-// 				open += 1
-// 			} else if c == '}' {
-// 				open -= 1
-// 			}
-// 		}
-// 	}
-// 	if err != nil {
-// 		log.Panic(err)
-// 	}
-
-// 	search := new(Search)
-// 	search.ID = id
-// 	search.Root = root
-// 	search.UserType = utype
-
-// 	var left string
-// 	for l, err := in.ReadString('\n'); err == nil; l, err = in.ReadString('\n') {
-// 		switch {
-// 		case reject.Match([]byte(l)):
-// 			search.Reject, left = parse_reject(l, in)
-// 		}
-// 	}
-// 	return left
-// }
-
-// func parse_reject(l string, in *bufio.Reader) {
-
-// }
-
-// func build(match []string, m map[string]int) *Search {
-// 	s := new(Search)
-// 	for name, _ := range m {
-// 		switch name {
-// 		case "SEARCH":
-// 		case "ROOT":
-// 		case "UTYPE":
-// 		case "ACCEPT_PARAM_SOLUTION":
-// 		case "ACCEPT_BLOCK":
-// 		case "REJECT_PARAM_CANDIDATE":
-// 		case "REJECT_PARAM_SOLUTION":
-// 		case "REJECT_BLOCK":
-// 		case "CHILDREN_PARAM_PAREN":
-// 		case "CHILDREN_BLOCK":
-// 		}
-// 	}
-// 	return s
-// }
 
 func isolate(l string, b *bufio.Reader) string {
 	buf := bytes.NewBuffer([]byte{})
@@ -421,6 +317,10 @@ func inlineFunction(body string, ret string, label string) string {
 		fmt.Fprintln(w, fmt.Sprintf("goto %v", label))
 	}
 	w.Flush()
+	s := string(buf.Bytes())
+	if !strings.HasSuffix(s, fmt.Sprintf("goto %v", label)) {
+		fmt.Fprintln(w, fmt.Sprintf("goto %v", label))
+	}
 	return string(buf.Bytes())
 }
 

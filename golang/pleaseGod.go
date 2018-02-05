@@ -3,12 +3,13 @@ package main
 import "log"
 
 type Queen struct {
-	Row    int
 	Column int
+	Row    int
 }
 
 func main() {
 	N := 8
+	winners := 0
 
 	type __1_StackEntry struct {
 		Parent   Queen
@@ -29,6 +30,11 @@ func main() {
 		/////////////////////
 		column := parent.Column + 1
 		c := make(chan Queen, 0)
+		if column > N {
+			close(c)
+			__1_c = c
+			goto __1_END_INIT_CHILDREN
+		}
 		go func() {
 			defer close(c)
 			for r := 1; r < N+1; r++ {
@@ -38,7 +44,6 @@ func main() {
 		__1_c = c
 		goto __1_END_INIT_CHILDREN
 
-		goto __1_END_INIT_CHILDREN
 	}
 	////////////////////////////////////////////////////////
 __1_END_INIT_CHILDREN:
@@ -49,7 +54,7 @@ __1_END_INIT_CHILDREN:
 	for {
 		if __1_candidate, __1_ok = <-__1_c; !__1_ok {
 			if len(__1_stack) == 0 {
-				return
+				break
 			}
 			__1_solution = __1_solution[:len(__1_solution)-1]
 			__1_se = __1_stack[len(__1_stack)-1]
@@ -58,7 +63,6 @@ __1_END_INIT_CHILDREN:
 			__1_c = __1_se.Children
 			continue
 		}
-
 		var __1_reject bool
 		////////////////////////////////////////////////////////
 		// USERLAND - REJECT
@@ -81,7 +85,6 @@ __1_END_INIT_CHILDREN:
 			__1_reject = false
 			goto __1_END_REJECT
 
-			goto __1_END_REJECT
 		}
 		////////////////////////////////////////////////////////
 	__1_END_REJECT:
@@ -89,7 +92,6 @@ __1_END_INIT_CHILDREN:
 			continue
 		}
 		__1_solution = append(__1_solution, __1_candidate)
-
 		var __1_accept bool
 		////////////////////////////////////////////////////////
 		// USERLAND - ACCEPT
@@ -97,10 +99,12 @@ __1_END_INIT_CHILDREN:
 			// PARAMETER BINDINGS
 			solution := __1_solution
 			/////////////////////
+			if len(solution) == N {
+				winners++
+			}
 			__1_accept = len(solution) == N
 			goto __1_END_ACCEPT
 
-			goto __1_END_ACCEPT
 		}
 		////////////////////////////////////////////////////////
 	__1_END_ACCEPT:
@@ -111,7 +115,6 @@ __1_END_INIT_CHILDREN:
 		}
 		__1_stack = append(__1_stack, __1_StackEntry{__1_root, __1_c})
 		__1_root = __1_candidate
-
 		////////////////////////////////////////////////////////
 		// USERLAND - CHILDREN
 		for {
@@ -120,6 +123,11 @@ __1_END_INIT_CHILDREN:
 			/////////////////////
 			column := parent.Column + 1
 			c := make(chan Queen, 0)
+			if column > N {
+				close(c)
+				__1_c = c
+				goto __1_END_CHILDREN
+			}
 			go func() {
 				defer close(c)
 				for r := 1; r < N+1; r++ {
@@ -127,38 +135,11 @@ __1_END_INIT_CHILDREN:
 				}
 			}()
 			__1_c = c
-			goto __1_END_INIT_CHILDREN
-
 			goto __1_END_CHILDREN
+
 		}
 		////////////////////////////////////////////////////////
 	__1_END_CHILDREN:
 	}
-
-	// search from Queen{0,0} (Queen) {
-	// 	accept solution:
-	// 		return len(solution) == N
-	// 	reject candidate, solution:
-	// 		row, column := candidate.Row, candidate.Column
-	// 		for _, q := range solution {
-	// 		    r, c := q.Row, q.Column
-	// 		    if row == r ||
-	// 		        column == c ||
-	// 		        row+column == r+c ||
-	// 		        row-column == r-c {
-	// 		        return true
-	// 		    }
-	// 		}
-	// 		return false
-	// 	children parent:
-	// 		column := parent.Column + 1
-	// 		c := make(chan Queen, 0)
-	// 		go func() {
-	// 			defer close(c)
-	// 			for r := 1; r < N+1; r++ {
-	// 				c <- Queen{column, r}
-	// 			}
-	// 		}()
-	// 		return c
-	// }
+	log.Println(winners)
 }
