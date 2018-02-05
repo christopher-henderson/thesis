@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
+	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -51,32 +54,32 @@ func main() {
 	}
 
 
-	search from Queen{0,0} (Queen) {
-		accept solution:
-			return len(solution) == N
-		reject candidate, solution:
-			row, column := candidate.Row, candidate.Column
-			for _, q := range solution {
-			    r, c := q.Row, q.Column
-			    if row == r ||
-			        column == c ||
-			        row+column == r+c ||
-			        row-column == r-c {
-			        return true
-			    }
-			}
-			return false
-		children parent:
-			column := parent.Column + 1
-			c := make(chan Queen, 0)
-			go func() {
-				defer close(c)
-				for r := 1; r < N+1; r++ {
-					c <- Queen{column, r}
-				}
-			}()
-			return c
-	}
+	// search from Queen{0,0} (Queen) {
+	// 	accept solution:
+	// 		return len(solution) == N
+	// 	reject candidate, solution:
+	// 		row, column := candidate.Row, candidate.Column
+	// 		for _, q := range solution {
+	// 		    r, c := q.Row, q.Column
+	// 		    if row == r ||
+	// 		        column == c ||
+	// 		        row+column == r+c ||
+	// 		        row-column == r-c {
+	// 		        return true
+	// 		    }
+	// 		}
+	// 		return false
+	// 	children parent:
+	// 		column := parent.Column + 1
+	// 		c := make(chan Queen, 0)
+	// 		go func() {
+	// 			defer close(c)
+	// 			for r := 1; r < N+1; r++ {
+	// 				c <- Queen{column, r}
+	// 			}
+	// 		}()
+	// 		return c
+	// }
 }
 `
 
@@ -97,10 +100,25 @@ type Search struct {
 		ParamParent string
 		Body        string
 	}
+	ChildrenInit struct {
+		ParamParent string
+		Body        string
+	}
 }
 
-func (s *Search) String() {
-
+func (s *Search) String() string {
+	r := strings.NewReplacer("{ID}", strconv.FormatInt(int64(s.ID), 10),
+		"{USERTYPE}", s.UserType,
+		"{ROOT_EXPRESSION}", s.Root,
+		"{CHILDREN_PARAM1}", s.Children.ParamParent,
+		"{CHILDREN_INIT_BODY}", s.ChildrenInit.Body,
+		"{REJECT_PARAM1}", s.Reject.ParamCandidate,
+		"{REJECT_PARAM2}", s.Reject.ParamSolution,
+		"{REJECT_BODY}", s.Reject.Body,
+		"{ACCEPT_PARAM1}", s.Accept.ParamSolution,
+		"{ACCEPT_BODY}", s.Accept.Body,
+		"{CHILDREN_INIT_BODY}", s.ChildrenInit.Body)
+	return r.Replace(template)
 }
 
 const template = `
@@ -122,10 +140,10 @@ for {
 	{CHILDREN_PARAM1} := __{ID}_root
 	/////////////////////
 	{CHILDREN_INIT_BODY}
-	goto INIT_CHILDREN
+	goto __{ID}_END_INIT_CHILDREN
 }
 ////////////////////////////////////////////////////////
-INIT_CHILDREN:
+__{ID}_END_INIT_CHILDREN:
 
 var __{ID}_candidate {USERTYPE}
 var __{ID}_ok bool
@@ -188,10 +206,10 @@ __{ID}_END_ACCEPT:
 		{CHILDREN_PARAM1} := __{ID}_root
 		/////////////////////
 		{CHILDREN_INIT_BODY}
-		goto __{ID}_END_NEXT_CHILD
+		goto __{ID}_END_CHILDREN
 	}
 	////////////////////////////////////////////////////////
-__{ID}_END_NEXT_CHILD:
+__{ID}_END_CHILDREN:
 }`
 
 // var signature = regexp.MustCompile(`\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<USER_TYPE>.*)\)\s+{\s*\n`)
@@ -309,8 +327,7 @@ func build(l string, b *bufio.Reader) string {
 	isolated := isolate(l, b)
 	match := searchRegex.FindStringSubmatch(isolated)
 	s := NewSearch(match)
-	log.Println(s)
-	return isolated
+	return s.String()
 }
 
 var id = 0
@@ -319,6 +336,13 @@ func NewSearch(match []string) *Search {
 	id++
 	s := new(Search)
 	s.ID = id
+	acceptVar := fmt.Sprintf("__%v_accept", s.ID)
+	acceptLabel := fmt.Sprintf("__%v_END_ACCEPT", s.ID)
+	rejectVar := fmt.Sprintf("__%v_reject", s.ID)
+	rejectLabel := fmt.Sprintf("__%v_END_REJECT", s.ID)
+	childrenVar := fmt.Sprintf("__%v_c", s.ID)
+	childrenLabel := fmt.Sprintf("__%v_END_CHILDREN", s.ID)
+	childrenInitLabel := fmt.Sprintf("__%v_END_INIT_CHILDREN", s.ID)
 	for name, i := range nameMap {
 		m := match[i]
 		switch name {
@@ -328,53 +352,55 @@ func NewSearch(match []string) *Search {
 			s.UserType = m
 		case "ACCEPT_PARAM_SOLUTION":
 			s.Accept.ParamSolution = m
-		case "ACCEPT_Body":
-			s.Accept.Body = m
+		case "ACCEPT_BODY":
+			s.Accept.Body = inlineFunction(m, acceptVar, acceptLabel)
 		case "REJECT_PARAM_CANDIDATE":
 			s.Reject.ParamCandidate = m
 		case "REJECT_PARAM_SOLUTION":
 			s.Reject.ParamSolution = m
 		case "REJECT_BODY":
-			s.Reject.Body = m
+			s.Reject.Body = inlineFunction(m, rejectVar, rejectLabel)
 		case "CHILDREN_PARAM_PARENT":
 			s.Children.ParamParent = m
 		case "CHILDREN_BODY":
-			s.Children.Body = m
+			s.Children.Body = inlineFunction(m, childrenVar, childrenLabel)
+			s.ChildrenInit.Body = inlineFunction(m, childrenVar, childrenInitLabel)
 		}
 	}
 	return s
 }
 
-// var returnRegex = regexp.MustCompile(`(?P<LEAD>\s*)return(?P<EXP>.*)`)
 var returnRegex = regexp.MustCompile(`\s*return`)
 
-// var returnMap = make_map(returnRegex)
-
 func inlineFunction(body string, ret string, label string) string {
-	r := bufio.NewReader(strings.NewReader(body))
+	// r := bufio.NewReader(strings.NewReader(body))
+	r := bufio.NewScanner(strings.NewReader(body))
 	buf := bytes.NewBuffer([]byte{})
 	w := bufio.NewWriter(buf)
 	var err error
 	var l string
-	for l, err = r.ReadString('\n'); err == nil; l, err = r.ReadString('\n') {
-		log.Println(l)
+	for r.Scan() {
+		l = r.Text()
+		// for l, err = r.ReadString('\n'); err == nil; l, err = r.ReadString('\n') {
 		if !returnRegex.Match([]byte(l)) {
-			w.WriteString(l)
+			fmt.Fprintln(w, l)
+			// w.WriteString(l)
 			continue
 		}
-		// retMatches := returnRegex.FindStringSubmatch(l)
-		// l = fmt.Sprintf("%v%v = %v\n", retMatches[returnMap["LEAD"]], ret, retMatches[returnMap["EXP"]])
 		l = returnRegex.ReplaceAllString(l, fmt.Sprintf("%v =", ret))
-		w.WriteString(l)
+		fmt.Fprintln(w, l)
 		curly := strings.Count(l, "{") - strings.Count(l, "}")
 		bracket := strings.Count(l, "[") - strings.Count(l, "]")
 		parens := strings.Count(l, "(") - strings.Count(l, ")")
 		for curly != 0 && bracket != 0 && parens != 0 {
-			l, err = r.ReadString('\n')
+			if !r.Scan() {
+				log.Panic(r.Err())
+			}
+			l := r.Text()
 			if err != nil {
 				log.Panic(err)
 			}
-			w.WriteString(l)
+			fmt.Fprintln(w, l)
 			for _, c := range l {
 				switch c {
 				case '{':
@@ -392,18 +418,16 @@ func inlineFunction(body string, ret string, label string) string {
 				}
 			}
 		}
-		w.WriteString(fmt.Sprintf("goto %v\n", label))
+		fmt.Fprintln(w, fmt.Sprintf("goto %v", label))
 	}
-	w.WriteString(fmt.Sprintf("goto %v\n", label))
 	w.Flush()
 	return string(buf.Bytes())
 }
 
-func parseFile(f io.Reader) {
+func parseFile(f io.Reader, w io.Writer) {
 	trim := regexp.MustCompile(`\s*(.*)`)
 	b := bufio.NewReader(f)
-	buf := bytes.NewBuffer([]byte{})
-	o := bufio.NewWriter(buf)
+	o := bufio.NewWriter(w)
 	for l, err := b.ReadString('\n'); err == nil; l, err = b.ReadString('\n') {
 		trimmed := trim.ReplaceAllString(l, "$1")
 		if strings.HasPrefix(trimmed, "search") {
@@ -412,21 +436,15 @@ func parseFile(f io.Reader) {
 		o.WriteString(l)
 	}
 	o.Flush()
-	log.Println(string(buf.Bytes()))
+	// log.Println(string(buf.Bytes()))
 }
 
 func main() {
-	// parseFile(strings.NewReader(example))
-	f := `row, column := candidate.Row, candidate.Column
-			for _, q := range solution {
-			    r, c := q.Row, q.Column
-			    if row == r ||
-			        column == c ||
-			        row+column == r+c ||
-			        row-column == r-c {
-			        return true
-			    }
-			}
-			return false`
-	log.Println(inlineFunction(f, "__01_reject", "END_REJECT"))
+	f, err := os.Create("pleaseGod.go")
+	if err != nil {
+		log.Println(err)
+	}
+	parseFile(strings.NewReader(example), f)
+	cmd := exec.Command("goimports", "-w", "pleaseGod.go")
+	cmd.Run()
 }
