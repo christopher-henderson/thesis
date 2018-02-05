@@ -1,6 +1,9 @@
 package main
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 type Queen struct {
 	Column int
@@ -15,6 +18,8 @@ func main() {
 	winners := 0
 
 	shutdown := make(chan int, 0)
+
+	start := time.Now()
 
 	type __1_StackEntry struct {
 		Parent   Queen
@@ -80,6 +85,8 @@ __1_END_INIT_CHILDREN:
 			candidate := __1_candidate
 			solution := __1_solution
 			/////////////////////
+			log.Println(func() { __1_reject = "lol" })
+			goto __1_END_REJECT
 			row, column := candidate.Row, candidate.Column
 			for _, q := range solution {
 				r, c := q.Row, q.Column
@@ -157,5 +164,7 @@ __1_END_INIT_CHILDREN:
 	close(shutdown)
 
 	log.Println(winners)
+
+	log.Println(time.Now().Sub(start))
 
 }
