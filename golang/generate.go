@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -29,9 +30,9 @@ func main() {
 	winners := 0
 	search from Queen{0,0} (Queen) {
 		accept solution:
-			if len(solution) == N {
-				winners++
-			}
+			log.Println(func() string{
+				return "bob"
+				}())
 			return len(solution) == N
 		reject candidate, solution:
 			row, column := candidate.Row, candidate.Column
@@ -328,23 +329,39 @@ func parseFile(f io.Reader, w io.Writer) {
 	trim := regexp.MustCompile(`\s*(.*)`)
 	b := bufio.NewReader(f)
 	o := bufio.NewWriter(w)
-	for l, err := b.ReadString('\n'); err == nil; l, err = b.ReadString('\n') {
+	var l string
+	var err error
+	for l, err = b.ReadString('\n'); err == nil; l, err = b.ReadString('\n') {
 		trimmed := trim.ReplaceAllString(l, "$1")
 		if strings.HasPrefix(trimmed, "search") {
 			l = build(l, b)
 		}
-		o.WriteString(l)
+		fmt.Fprintln(w, l)
 	}
+	fmt.Fprintln(w, l)
 	o.Flush()
-	// log.Println(string(buf.Bytes()))
+}
+
+var in string
+var out string
+
+func init() {
+	flag.StringVar(&in, "in", "testin.go", "Path to the input Go file.")
+	flag.StringVar(&out, "out", "testout.go", "Path to the output Go file.")
 }
 
 func main() {
-	f, err := os.Create("pleaseGod.go")
+	inf, err := os.Open(in)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer inf.Close()
+	outf, err := os.Create(out)
 	if err != nil {
 		log.Println(err)
 	}
-	parseFile(strings.NewReader(example), f)
-	cmd := exec.Command("goimports", "-w", "pleaseGod.go")
+	defer outf.Close()
+	parseFile(inf, outf)
+	cmd := exec.Command("goimports", "-w", out)
 	cmd.Run()
 }

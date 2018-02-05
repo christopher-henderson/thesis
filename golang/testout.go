@@ -1,15 +1,23 @@
 package main
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 type Queen struct {
 	Column int
-	Row    int
+
+	Row int
 }
 
 func main() {
+
 	N := 8
+
 	winners := 0
+
+	shutdown := make(chan int, 0)
 
 	type __1_StackEntry struct {
 		Parent   Queen
@@ -38,7 +46,12 @@ func main() {
 		go func() {
 			defer close(c)
 			for r := 1; r < N+1; r++ {
-				c <- Queen{column, r}
+				select {
+				case c <- Queen{column, r}:
+				case <-shutdown:
+					log.Println("THIS WOULDA BEEN A LEAK")
+					break
+				}
 			}
 		}()
 		__1_c = c
@@ -131,7 +144,12 @@ __1_END_INIT_CHILDREN:
 			go func() {
 				defer close(c)
 				for r := 1; r < N+1; r++ {
-					c <- Queen{column, r}
+					select {
+					case c <- Queen{column, r}:
+					case <-shutdown:
+						log.Println("Woulda been a leak")
+						break
+					}
 				}
 			}()
 			__1_c = c
@@ -141,5 +159,8 @@ __1_END_INIT_CHILDREN:
 		////////////////////////////////////////////////////////
 	__1_END_CHILDREN:
 	}
+	close(shutdown)
+
 	log.Println(winners)
+	time.Sleep(time.Second * 4)
 }
