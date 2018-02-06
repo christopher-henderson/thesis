@@ -14,12 +14,11 @@ func main() {
 	for N := 0; N < 9; N++ {
 		start := time.Now()
 		winners := 0
-		shutdown := make(chan int, 0)
 
 		// 'if' used to scope this entire engine.
 		if true {
 			// User declaration.
-			__9abf22eb_USER_children := func(parent Queen) chan Queen {
+			__d3708415_USER_children := func(parent Queen) chan Queen {
 				column := parent.Column + 1
 				c := make(chan Queen, 0)
 				if column > N {
@@ -29,26 +28,20 @@ func main() {
 				go func() {
 					defer close(c)
 					for r := 1; r < N+1; r++ {
-						select {
-						case c <- Queen{column, r}:
-						case <-shutdown:
-							break
-						}
+						c <- Queen{column, r}
 					}
 				}()
 				return c
-
 			}
 			// User declaration.
-			__9abf22eb_USER_accept := func(solution []Queen) bool {
+			__d3708415_USER_accept := func(solution []Queen) bool {
 				if len(solution) == N {
 					winners++
 				}
 				return len(solution) == N
-
 			}
 			// User declaration.
-			__9abf22eb_USER_reject := func(candidate Queen, solution []Queen) bool {
+			__d3708415_USER_reject := func(candidate Queen, solution []Queen) bool {
 				row, column := candidate.Row, candidate.Column
 				for _, q := range solution {
 					r, c := q.Row, q.Column
@@ -60,60 +53,57 @@ func main() {
 					}
 				}
 				return false
-
 			}
 			// Parent:Children PODO meant for stack management.
-			type __9abf22eb_StackEntry struct {
+			type __d3708415_StackEntry struct {
 				Parent   Queen
 				Children chan Queen
 			}
 			/////////////// Engine initialization.
 			// Stack of Parent:Chidren pairs.
-			__9abf22eb_stack := make([]__9abf22eb_StackEntry, 0)
+			__d3708415_stack := make([]__d3708415_StackEntry, 0)
 			// Solution thus far.
-			__9abf22eb_solution := make([]Queen, 0)
+			__d3708415_solution := make([]Queen, 0)
 			// Current root under consideration.
-			__9abf22eb_root := Queen{0, 0}
+			__d3708415_root := Queen{0, 0}
 			// Current candidate under consideration.
-			var __9abf22eb_candidate Queen
+			var __d3708415_candidate Queen
 			// Holds a Stack Entry and popping.
-			var __9abf22eb_se __9abf22eb_StackEntry
+			var __d3708415_se __d3708415_StackEntry
 			// Generic bool holder.
-			var __9abf22eb_ok bool
+			var __d3708415_ok bool
 
 			// Begin search.
-			__9abf22eb_c := __9abf22eb_USER_children(__9abf22eb_root)
+			__d3708415_c := __d3708415_USER_children(__d3708415_root)
 			for {
-				if __9abf22eb_candidate, __9abf22eb_ok = <-__9abf22eb_c; !__9abf22eb_ok {
-					if len(__9abf22eb_stack) == 0 {
+				if __d3708415_candidate, __d3708415_ok = <-__d3708415_c; !__d3708415_ok {
+					if len(__d3708415_stack) == 0 {
 						break
 					}
-					__9abf22eb_solution = __9abf22eb_solution[:len(__9abf22eb_solution)-1]
-					__9abf22eb_se = __9abf22eb_stack[len(__9abf22eb_stack)-1]
-					__9abf22eb_stack = __9abf22eb_stack[:len(__9abf22eb_stack)-1]
-					__9abf22eb_root = __9abf22eb_se.Parent
-					__9abf22eb_c = __9abf22eb_se.Children
+					__d3708415_solution = __d3708415_solution[:len(__d3708415_solution)-1]
+					__d3708415_se = __d3708415_stack[len(__d3708415_stack)-1]
+					__d3708415_stack = __d3708415_stack[:len(__d3708415_stack)-1]
+					__d3708415_root = __d3708415_se.Parent
+					__d3708415_c = __d3708415_se.Children
 					continue
 				}
-				__9abf22eb_reject := __9abf22eb_USER_reject(__9abf22eb_candidate, __9abf22eb_solution)
-				if __9abf22eb_reject {
+				__d3708415_reject := __d3708415_USER_reject(__d3708415_candidate, __d3708415_solution)
+				if __d3708415_reject {
 					continue
 				}
-				__9abf22eb_solution = append(__9abf22eb_solution, __9abf22eb_candidate)
-				__9abf22eb_accept := __9abf22eb_USER_accept(__9abf22eb_solution)
-				if __9abf22eb_accept {
-					log.Println(__9abf22eb_solution)
-					__9abf22eb_solution = __9abf22eb_solution[:len(__9abf22eb_solution)-1]
+				__d3708415_solution = append(__d3708415_solution, __d3708415_candidate)
+				__d3708415_accept := __d3708415_USER_accept(__d3708415_solution)
+				if __d3708415_accept {
+					log.Println(__d3708415_solution)
+					__d3708415_solution = __d3708415_solution[:len(__d3708415_solution)-1]
 					continue
 				}
-				__9abf22eb_stack = append(__9abf22eb_stack, __9abf22eb_StackEntry{__9abf22eb_root, __9abf22eb_c})
-				__9abf22eb_root = __9abf22eb_candidate
-				__9abf22eb_c = __9abf22eb_USER_children(__9abf22eb_root)
+				__d3708415_stack = append(__d3708415_stack, __d3708415_StackEntry{__d3708415_root, __d3708415_c})
+				__d3708415_root = __d3708415_candidate
+				__d3708415_c = __d3708415_USER_children(__d3708415_root)
 			}
 		}
-		close(shutdown)
 		log.Println(winners)
 		log.Println(time.Now().Sub(start))
 	}
-
 }

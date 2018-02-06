@@ -80,10 +80,7 @@ if true {
 	}
 }`
 
-// var searchRegex = regexp.MustCompile(`(?sU)\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<UTYPE>.*)\)\s*{\s*accept\s+(?P<ACCEPT_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ACCEPT_BODY>(?:.*)*)\s*reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*:\s*(?P<REJECT_BODY>(?:.*)*)\s*children\s+(?P<CHILDREN_PARAM_PARENT>.*)\s*:\s*(?P<CHILDREN_BODY>(?:.*)*)\s*(?:add\s+(?P<ADD_PARAM_CANDIDATE>.*)\s*:\s*\s*(?P<ADD_BODY>(?:.*)*)\s*)?\s*(?:remove\s+(?P<REMOVE_PARAM_CANDIDATE>.*)\s*:\s*\s*(?P<REMOVE_BODY>(?:.*)*)\s*)?}$`)
-
-var searchRegex = regexp.MustCompile(`(?sU)\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<UTYPE>.*)\)\s*{\s*accept\s+(?P<ACCEPT_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ACCEPT_BODY>(?:.*)*)\s*reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*:\s*(?P<REJECT_BODY>(?:.*)*)\s*children\s+(?P<CHILDREN_PARAM_PARENT>.*)\s*:\s*(?P<CHILDREN_BODY>(?:.*)*)\s*(?:add\s+(?P<ADD_PARAM_CANDIDATE>.*),\s+(?P<ADD_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ADD_BODY>(?:.*)*)\s*)?\s*(?:remove\s+(?P<REMOVE_PARAM_CANDIDATE>.*),\s+(?P<REMOVE_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<REMOVE_BODY>(?:.*)*)\s*)?}$`)
-
+var searchRegex = regexp.MustCompile(`\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<UTYPE>.*)\)\s*{\s*accept\s+(?P<ACCEPT_PARAM_SOLUTION>.*)\s*:\s*\n\s*(?P<ACCEPT_BODY>(?:.*\n)*)\s*reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*:\s*\n(?P<REJECT_BODY>(?:.*\n)*)\s*children\s+(?P<CHILDREN_PARAM_PARENT>.*)\s*:\s*\n(?P<CHILDREN_BODY>(?:.*\n)*)\s*}`)
 var searchSignature = regexp.MustCompile(`\s*search\s+from.*`)
 var nameMap = func(r *regexp.Regexp) map[string]int {
 	m := make(map[string]int, 0)
@@ -112,16 +109,6 @@ type Search struct {
 		ParamParent string
 		Body        string
 	}
-	Add struct {
-		ParamCandidate string
-		ParamSolution  string
-		Body           string
-	}
-	Remove struct {
-		ParamCandidate string
-		ParamSolution  string
-		Body           string
-	}
 }
 
 func (s *Search) String() string {
@@ -137,9 +124,6 @@ func (s *Search) String() string {
 		"{CHILDREN_BODY}", s.Children.Body)
 	return fmt.Sprintln(r.Replace(template))
 }
-
-var leftTrim = regexp.MustCompile(`(?s)^\s+(.*)`)
-var rightTrim = regexp.MustCompile(`(?s)(.*})\s+$`)
 
 func isolate(l string, b *bufio.Reader) string {
 	buf := bytes.NewBuffer([]byte{})
@@ -161,7 +145,7 @@ func isolate(l string, b *bufio.Reader) string {
 
 	}
 	o.Flush()
-	return rightTrim.ReplaceAllString(string(buf.Bytes()), "$1")
+	return string(buf.Bytes())
 }
 
 func build(l string, b *bufio.Reader) string {
@@ -192,34 +176,19 @@ func NewSearch(match []string) *Search {
 		case "ACCEPT_PARAM_SOLUTION":
 			s.Accept.ParamSolution = m
 		case "ACCEPT_BODY":
-			s.Accept.Body = leftTrim.ReplaceAllString(m, "$1")
+			s.Accept.Body = m
 		case "REJECT_PARAM_CANDIDATE":
 			s.Reject.ParamCandidate = m
 		case "REJECT_PARAM_SOLUTION":
 			s.Reject.ParamSolution = m
 		case "REJECT_BODY":
-			s.Reject.Body = leftTrim.ReplaceAllString(m, "$1")
+			s.Reject.Body = m
 		case "CHILDREN_PARAM_PARENT":
 			s.Children.ParamParent = m
 		case "CHILDREN_BODY":
-			s.Children.Body = leftTrim.ReplaceAllString(m, "$1")
-
-		case "ADD_PARAM_CANDIDATE":
-			s.Add.ParamCandidate = m
-		case "ADD_PARAM_SOLUTION":
-			s.Add.ParamSolution = m
-		case "ADD_BODY":
-			s.Add.Body = leftTrim.ReplaceAllString(m, "$1")
-
-		case "REMOVE_PARAM_CANDIDATE":
-			s.Remove.ParamCandidate = m
-		case "REMOVE_PARAM_SOLUTION":
-			s.Remove.ParamSolution = m
-		case "REMOVE_BODY":
-			s.Remove.Body = leftTrim.ReplaceAllString(m, "$1")
+			s.Children.Body = m
 		}
 	}
-	log.Println(s.Add.Body)
 	return s
 }
 
@@ -248,6 +217,7 @@ func init() {
 }
 
 func main() {
+	log.Println(in, out)
 	inf, err := os.Open(in)
 	if err != nil {
 		log.Panic(err)

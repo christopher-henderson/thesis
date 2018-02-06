@@ -9,13 +9,9 @@ func main() {
 	for N := 0; N < 9; N ++ {
 		start := time.Now()
 		winners := 0
+		shutdown := make(chan int, 0)
 		search from Queen{0,0} (Queen) {
 			accept solution:
-
-
-
-
-			
 				if len(solution) == N {
 					winners++
 				}
@@ -42,12 +38,19 @@ func main() {
 				go func() {
 					defer close(c)
 					for r := 1; r < N+1; r++ {
-						c <- Queen{column, r}
+						select {
+							case c <- Queen{column, r}:
+							case <-shutdown:
+								break
+						}
 					}
 				}()
 				return c
 		}
+		close(shutdown)
 		log.Println(winners)
 		log.Println(time.Now().Sub(start))
 	}
+	
+	
 }
