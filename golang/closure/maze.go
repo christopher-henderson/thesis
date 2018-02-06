@@ -44,14 +44,6 @@ func ESborder(maze [][]int, node MazeNode) bool {
 func main() {
 	maze := simple
 	search from MazeNode{-1, 1} (MazeNode) {
-		accept solution:
-			if len(solution) == 1 {
-				return false
-			}
-			final := solution[len(solution) - 1]
-			return NSborder(maze, final) || ESborder(maze, final)
-		reject candidate, solution:
-			return false
 		children parent:
 			log.Println(parent)
 			c := make(chan MazeNode, 0)
@@ -69,6 +61,14 @@ func main() {
 				close(c)
 			}()
 			return c
+		accept solution:
+			if len(solution) == 1 {
+				return false
+			}
+			final := solution[len(solution) - 1]
+			return NSborder(maze, final) || ESborder(maze, final)
+		reject candidate, solution:
+			return false
 		add candidate, solution:
 			log.Println("WHOA NOW, ADDING")
 		remove candidate, solution:

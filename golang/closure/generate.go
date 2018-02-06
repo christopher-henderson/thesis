@@ -82,7 +82,22 @@ if true {
 
 // var searchRegex = regexp.MustCompile(`(?sU)\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<UTYPE>.*)\)\s*{\s*accept\s+(?P<ACCEPT_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ACCEPT_BODY>(?:.*)*)\s*reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*:\s*(?P<REJECT_BODY>(?:.*)*)\s*children\s+(?P<CHILDREN_PARAM_PARENT>.*)\s*:\s*(?P<CHILDREN_BODY>(?:.*)*)\s*(?:add\s+(?P<ADD_PARAM_CANDIDATE>.*)\s*:\s*\s*(?P<ADD_BODY>(?:.*)*)\s*)?\s*(?:remove\s+(?P<REMOVE_PARAM_CANDIDATE>.*)\s*:\s*\s*(?P<REMOVE_BODY>(?:.*)*)\s*)?}$`)
 
-var searchRegex = regexp.MustCompile(`(?sU)\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<UTYPE>.*)\)\s*{\s*accept\s+(?P<ACCEPT_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ACCEPT_BODY>(?:.*)*)\s*reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*:\s*(?P<REJECT_BODY>(?:.*)*)\s*children\s+(?P<CHILDREN_PARAM_PARENT>.*)\s*:\s*(?P<CHILDREN_BODY>(?:.*)*)\s*(?:add\s+(?P<ADD_PARAM_CANDIDATE>.*),\s+(?P<ADD_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ADD_BODY>(?:.*)*)\s*)?\s*(?:remove\s+(?P<REMOVE_PARAM_CANDIDATE>.*),\s+(?P<REMOVE_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<REMOVE_BODY>(?:.*)*)\s*)?}$`)
+// var searchRegex = regexp.MustCompile(`(?sU)\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<UTYPE>.*)\)\s*{\s*accept\s+(?P<ACCEPT_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ACCEPT_BODY>(?:.*)*)\s*reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*:\s*(?P<REJECT_BODY>(?:.*)*)\s*children\s+(?P<CHILDREN_PARAM_PARENT>.*)\s*:\s*(?P<CHILDREN_BODY>(?:.*)*)\s*(?:add\s+(?P<ADD_PARAM_CANDIDATE>.*),\s+(?P<ADD_PARAM_SOLUTION>.*)\s*:\s*(?P<ADD_BODY>(?:.*)*))?\s*(?:remove\s+(?P<REMOVE_PARAM_CANDIDATE>.*),\s+(?P<REMOVE_PARAM_SOLUTION>.*)\s*:\s*(?P<REMOVE_BODY>(?:.*)*))?}$`)
+
+// s	let . match \n (default false)
+// U	ungreedy: swap meaning of x* and x*?, x+ and x+?, etc (default false)
+var regexFlags = `(?sU)`
+var signature = `\s*search\s+from\s+(?P<ROOT>.*)\s+\((?P<UTYPE>.*)\)\s*{`
+var children = `\s*children\s+(?P<CHILDREN_PARAM_PARENT>.*)\s*:\s*(?P<CHILDREN_BODY>(?:.*)*)`
+var accept = `\s*(?:accept\s+(?P<ACCEPT_PARAM_SOLUTION>.*)\s*:\s*\s*(?P<ACCEPT_BODY>(?:.*)*))?`
+var reject = `\s*(?:reject\s+(?P<REJECT_PARAM_CANDIDATE>.*)\s*,\s*(?P<REJECT_PARAM_SOLUTION>.*)\s*:\s*(?P<REJECT_BODY>(?:.*)*))?`
+var add = `\s*(?:add\s+(?P<ADD_PARAM_CANDIDATE>.*),\s+(?P<ADD_PARAM_SOLUTION>.*)\s*:\s*(?P<ADD_BODY>(?:.*)*))?`
+var remove = `\s*(?:remove\s+(?P<REMOVE_PARAM_CANDIDATE>.*),\s+(?P<REMOVE_PARAM_SOLUTION>.*)\s*:\s*(?P<REMOVE_BODY>(?:.*)*))?`
+var end = `\s*}$`
+
+var completeText = fmt.Sprintf("%v%v%v%v%v%v%v%v", regexFlags, signature, children, accept, reject, add, remove, end)
+
+var searchRegex = regexp.MustCompile(completeText)
 
 var searchSignature = regexp.MustCompile(`\s*search\s+from.*`)
 var nameMap = func(r *regexp.Regexp) map[string]int {
@@ -220,6 +235,7 @@ func NewSearch(match []string) *Search {
 		}
 	}
 	log.Println(s.Add.Body)
+	log.Println(s.Remove.Body)
 	return s
 }
 

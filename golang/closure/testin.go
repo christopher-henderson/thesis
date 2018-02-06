@@ -10,12 +10,21 @@ func main() {
 		start := time.Now()
 		winners := 0
 		search from Queen{0,0} (Queen) {
+			children parent:
+				column := parent.Column + 1
+				c := make(chan Queen, 0)
+				if column > N {
+					close(c)
+					return c
+				}
+				go func() {
+					defer close(c)
+					for r := 1; r < N+1; r++ {
+						c <- Queen{column, r}
+					}
+				}()
+				return c
 			accept solution:
-
-
-
-
-			
 				if len(solution) == N {
 					winners++
 				}
@@ -32,20 +41,6 @@ func main() {
 				    }
 				}
 				return false
-			children parent:
-				column := parent.Column + 1
-				c := make(chan Queen, 0)
-				if column > N {
-					close(c)
-					return c
-				}
-				go func() {
-					defer close(c)
-					for r := 1; r < N+1; r++ {
-						c <- Queen{column, r}
-					}
-				}()
-				return c
 		}
 		log.Println(winners)
 		log.Println(time.Now().Sub(start))
