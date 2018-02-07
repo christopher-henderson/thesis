@@ -12,7 +12,9 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strings"
+	"time"
 )
 
 const template = `
@@ -95,7 +97,77 @@ var add = `\s*(?:add\s+(?P<ADD_PARAM_CANDIDATE>.*),\s+(?P<ADD_PARAM_SOLUTION>.*)
 var remove = `\s*(?:remove\s+(?P<REMOVE_PARAM_CANDIDATE>.*),\s+(?P<REMOVE_PARAM_SOLUTION>.*)\s*:\s*(?P<REMOVE_BODY>(?:.*)*))?`
 var end = `\s*}$`
 
+var sequences = doit(Permute([]string{children,
+	accept,
+	reject,
+	add,
+	remove}))
+
+func doit(s [][]string) string {
+	r := make([]string, len(s))
+	for i := 0; i < len(s); i++ {
+		r[i] = fmt.Sprintf("(:?%v)", strings.Join(s[i], ""))
+	}
+	return fmt.Sprintf("(?:%v)", strings.Join(r, `|`))
+}
+
+///////////////////
+// https://play.golang.org/p/moc9IfU6tU
+func first(data sort.Interface) {
+	sort.Sort(data)
+}
+
+func next(data sort.Interface) bool {
+	// false when it cannot permute any more
+	// http://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
+	var k, l int
+	for k = data.Len() - 2; ; k-- {
+		if k < 0 {
+			return false
+		}
+
+		if data.Less(k, k+1) {
+			break
+		}
+	}
+	for l = data.Len() - 1; !data.Less(k, l); l-- {
+	}
+	data.Swap(k, l)
+	for i, j := k+1, data.Len()-1; i < j; i++ {
+		data.Swap(i, j)
+		j--
+	}
+	return true
+}
+
+// Permute returns all possible permutations of string slice.
+func Permute(slice []string) [][]string {
+	first(sort.StringSlice(slice))
+	result := [][]string{slice}
+	cn := 0
+	for {
+		cn++
+		isDone := next(sort.StringSlice(slice))
+		if !isDone {
+			break
+		}
+		val := make([]string, len(slice))
+		copy(val, slice)
+		result = append(result, val)
+	}
+	possibleNum := 1
+	for i := 0; i < len(slice); i++ {
+		possibleNum *= i + 1
+	}
+	if len(result) != possibleNum {
+		log.Fatalf("Should be %d combinations but %+v", possibleNum, result)
+	}
+	return result
+}
+
 var completeText = fmt.Sprintf("%v%v%v%v%v%v%v%v", regexFlags, signature, children, accept, reject, add, remove, end)
+
+// var completeText = fmt.Sprintf("%v%v%v%v", regexFlags, signature, sequences, end)
 
 var searchRegex = regexp.MustCompile(completeText)
 
@@ -234,8 +306,6 @@ func NewSearch(match []string) *Search {
 			s.Remove.Body = leftTrim.ReplaceAllString(m, "$1")
 		}
 	}
-	log.Println(s.Add.Body)
-	log.Println(s.Remove.Body)
 	return s
 }
 
@@ -264,6 +334,8 @@ func init() {
 }
 
 func main() {
+	// log.Println(sequences)
+	start := time.Now()
 	inf, err := os.Open(in)
 	if err != nil {
 		log.Panic(err)
@@ -277,4 +349,5 @@ func main() {
 	parseFile(inf, outf)
 	cmd := exec.Command("goimports", "-w", out)
 	cmd.Run()
+	log.Println(time.Now().Sub(start))
 }
