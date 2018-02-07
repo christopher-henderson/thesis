@@ -15,6 +15,7 @@ type Queen struct {
 func NQueens(N int) {
 	start := time.Now()
 	winners := 0
+	l := sync.Mutex{}
 	// 'if' used to scope this entire engine.
 	if true {
 		// User CHILDREN declaration.
@@ -40,10 +41,12 @@ func NQueens(N int) {
 			if len(solution) == N {
 				// Print it, append it to a slice of solutions,
 				// whatever you want here.
-				log.Println(solution)
+				// log.Println(solution)
 				// Keeping track of number of solutions
 				// for quick verification.
+				l.Lock()
 				winners++
+				l.Unlock()
 				return true
 			}
 			return false
@@ -115,24 +118,28 @@ func NQueens(N int) {
 					solution = solution[:len(solution)-1]
 					continue
 				}
+
+				if lock.Capture() {
+					dst := make([]Queen, len(solution))
+					copy(dst, solution)
+					go engine(dst, candidate, USER_children(candidate))
+					// pretend we didn't see this
+					solution = solution[:len(solution)-1]
+					continue
+				}
+
 				// Push the current root to the stack.
 				stack = append(stack, StackEntry{root, children})
 				// Make the candidate the new root.
 				root = candidate
 				// Get the new root's children channel.
 				children = USER_children(root)
-				for lock.Available() {
-					dst := make([]Queen, len(solution))
-					copy(dst, solution)
-					lock.Add(1)
-					go engine(dst, root, children)
-				}
 			}
 			lock.Done(1)
 		}
 
 		root := Queen{0, 0}
-		lock.Add(1)
+		lock.Capture()
 		go engine(make([]Queen, 0), root, USER_children(root))
 		lock.Wait()
 
@@ -146,7 +153,7 @@ type Lock struct {
 	max   int
 	count int
 	sync.WaitGroup
-	sync.RWMutex
+	sync.Mutex
 }
 
 func NewLock() *Lock {
@@ -155,24 +162,35 @@ func NewLock() *Lock {
 	return l
 }
 
-func (l *Lock) Add(n int) {
-	l.RWMutex.Lock()
-	l.WaitGroup.Add(1)
-	l.count += n
-	l.RWMutex.Unlock()
-}
+// func (l *Lock) Add(n int) {
+// 	l.Mutex.Lock()
+// 	l.WaitGroup.Add(1)
+// 	l.count += n
+// 	l.Mutex.Unlock()
+// }
 
 func (l *Lock) Done(n int) {
-	l.RWMutex.Lock()
+	l.Mutex.Lock()
 	l.WaitGroup.Done()
 	l.count -= n
-	l.RWMutex.Unlock()
+	l.Mutex.Unlock()
 }
 
 func (l *Lock) Available() bool {
-	l.RWMutex.RLock()
-	defer l.RWMutex.RUnlock()
+	l.Mutex.Lock()
+	defer l.Mutex.Unlock()
 	return l.count < l.max
+}
+
+func (l *Lock) Capture() bool {
+	l.Mutex.Lock()
+	defer l.Mutex.Unlock()
+	if l.count >= l.max {
+		return false
+	}
+	l.count++
+	l.WaitGroup.Add(1)
+	return true
 }
 
 func (l *Lock) Wait() {
@@ -180,5 +198,5 @@ func (l *Lock) Wait() {
 }
 
 func main() {
-	NQueens(8)
+	NQueens(12)
 }
