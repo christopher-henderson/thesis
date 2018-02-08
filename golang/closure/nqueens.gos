@@ -13,6 +13,8 @@ func main() {
 			children parent:
 				column := parent.Column + 1
 				c := make(chan Queen, 0)
+				// If the parent is in the final column
+				// then there are no children.
 				if column > N {
 					close(c)
 					return c
@@ -26,9 +28,15 @@ func main() {
 				return c
 			accept solution:
 				if len(solution) == N {
+					// Print it, append it to a slice of solutions,
+					// whatever you want here.
+					log.Println(solution)
+					// Keeping track of number of solutions
+					// for quick verification.
 					winners++
+					return true
 				}
-				return len(solution) == N
+				return false
 			reject candidate, solution:
 				row, column := candidate.Row, candidate.Column
 				for _, q := range solution {

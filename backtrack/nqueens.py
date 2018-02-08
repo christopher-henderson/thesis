@@ -1,6 +1,6 @@
 from backtrack import backtrack
-
-N = 8
+import time
+N = 12
 
 
 def first(candidate):
@@ -39,7 +39,8 @@ def reject(P, candidate):
 def output(P):
     # use the solution c of P, as appropriate to the application.
     # unique.add(tuple(P))
-    print(P)
+    # print(P)
+    pass
 
 def add(P, candidate):
     P.append(candidate)
@@ -49,4 +50,6 @@ def remove(P):
 
 
 if __name__ == '__main__':
+    start = time.time()
     backtrack((1, 1), first, next, reject, accept, add, remove, output)
+    print((time.time() - start)*1000)

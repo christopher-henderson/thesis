@@ -1,0 +1,108 @@
+package main
+
+var simple = [][]int{{0, 0, 0, 0, 0, 0},
+	{1, 1, 0, 0, 0, 0},
+	{0, 1, 0, 0, 0, 0},
+	{0, 1, 1, 1, 1, 0},
+	{0, 1, 0, 1, 0, 0},
+	{0, 0, 0, 1, 0, 0},
+}
+
+var cycle = [][]int{{0, 0, 0, 0, 0, 0},
+	{1, 1, 1, 1, 0, 0},
+	{0, 1, 0, 1, 0, 0},
+	{0, 1, 1, 1, 1, 0},
+	{0, 1, 0, 1, 0, 0},
+	{0, 0, 0, 1, 0, 0},
+}
+
+var multipleEntrancesExits = [][]int{{0, 0, 0, 0, 0, 0},
+	{1, 1, 0, 0, 0, 0},
+	{0, 1, 0, 0, 0, 0},
+	{0, 1, 1, 1, 1, 1},
+	{0, 1, 0, 1, 0, 0},
+	{0, 1, 0, 1, 0, 0},
+}
+
+type MazeNode struct {
+	Valid bool
+	Row    int
+	Column int
+	maze   [][]int
+}
+
+// North-Sounth border
+func (mn *MazeNode) NSborder() bool {
+	return mn.Row == 0 || mn.Row == len(mn.maze) - 1
+}
+
+// East-West border
+func (mn *MazeNode) ESborder() bool {
+	return mn.Column == 0 || mn.Column == len(mn.maze[0]) - 1
+}
+
+func MakeNodeMap(maze [][]int) [][]*MazeNode {
+	m := make([][]*MazeNode, len(maze))
+	for i, r := range maze {
+		m[i] = make([]*MazeNode, len(maze[i]))
+		for j, c := range r {
+			m[i][j] = &MazeNode{c == 1, i, j, maze}
+		}
+	}
+	return m
+}
+
+func main() {
+	maze := simple
+	nodeMap := MakeNodeMap(maze)
+	seen := make(map[*MazeNode]bool)
+	search from &MazeNode{false, -1, 1, maze} (*MazeNode) {
+		children parent:
+			c := make(chan *MazeNode, 0)
+			go func() {
+				defer close(c)
+				north := []int{parent.Row - 1, parent.Column}
+				south := []int{parent.Row + 1, parent.Column}
+				east := []int{parent.Row, parent.Column - 1}
+				west := []int{parent.Row, parent.Column + 1}
+				if inbounds(north, maze) {
+					child := nodeMap[north[0]][north[1]]
+					if _, ok := seen[child]; !ok {
+						c <- child
+					}
+				}
+				if inbounds(south, maze) {
+					child := nodeMap[south[0]][south[1]]
+					if _, ok := seen[child]; !ok {
+						c <- child
+					}
+				}
+				if inbounds(east, maze) {
+					child := nodeMap[east[0]][east[1]]
+					if _, ok := seen[child]; !ok {
+						c <- child
+					}
+				}
+				if inbounds(west, maze) {
+					child := nodeMap[west[0]][west[1]]
+					if _, ok := seen[child]; !ok {
+						c <- child
+					}
+				}
+			}()
+			return c
+		accept solution:
+			if len(solution) == 1 {
+				// this is the entry point
+				return false
+			}
+			final := solution[len(solution) - 1]
+			return final.Valid && (final.NSborder() || final.ESborder())
+		reject candidate, solution:
+			return false
+		add candidate, solution:
+			seen[candidate] = true
+		remove candidate, solution:
+			delete(seen, candidate)
+	}
+}
