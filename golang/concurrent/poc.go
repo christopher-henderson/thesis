@@ -70,9 +70,31 @@ func NQueens(N int) {
 			Parent   Queen
 			Children chan Queen
 		}
-
-		lock := NewLock()
-
+		lock := struct {
+			max   int
+			count int
+			sync.WaitGroup
+			sync.Mutex
+		}{}
+		lock.max = runtime.NumCPU()
+		capture := func() bool {
+			lock.Mutex.Lock()
+			defer lock.Mutex.Unlock()
+			if lock.count >= lock.max {
+				return false
+			}
+			lock.count++
+			lock.WaitGroup.Add(1)
+			return true
+		}
+		done := func() {
+			lock.Mutex.Lock()
+			lock.WaitGroup.Done()
+			lock.count -= 1
+			lock.Mutex.Unlock()
+		}
+		// You have to declare first since the function can fire off a
+		// goroutine of itself.
 		var engine func(solution []Queen, root Queen, children chan Queen)
 		engine = func(solution []Queen, root Queen, children chan Queen) {
 			// Stack of Parent:Chidren pairs.
@@ -119,7 +141,7 @@ func NQueens(N int) {
 					continue
 				}
 
-				if lock.Capture() {
+				if capture() {
 					dst := make([]Queen, len(solution))
 					copy(dst, solution)
 					go engine(dst, candidate, USER_children(candidate))
@@ -135,13 +157,13 @@ func NQueens(N int) {
 				// Get the new root's children channel.
 				children = USER_children(root)
 			}
-			lock.Done(1)
+			done()
 		}
 
 		root := Queen{0, 0}
-		lock.Capture()
+		capture()
 		go engine(make([]Queen, 0), root, USER_children(root))
-		lock.Wait()
+		lock.WaitGroup.Wait()
 
 	}
 	log.Println(winners)
@@ -149,54 +171,6 @@ func NQueens(N int) {
 
 }
 
-type Lock struct {
-	max   int
-	count int
-	sync.WaitGroup
-	sync.Mutex
-}
-
-func NewLock() *Lock {
-	l := new(Lock)
-	l.max = runtime.NumCPU()
-	return l
-}
-
-// func (l *Lock) Add(n int) {
-// 	l.Mutex.Lock()
-// 	l.WaitGroup.Add(1)
-// 	l.count += n
-// 	l.Mutex.Unlock()
-// }
-
-func (l *Lock) Done(n int) {
-	l.Mutex.Lock()
-	l.WaitGroup.Done()
-	l.count -= n
-	l.Mutex.Unlock()
-}
-
-func (l *Lock) Available() bool {
-	l.Mutex.Lock()
-	defer l.Mutex.Unlock()
-	return l.count < l.max
-}
-
-func (l *Lock) Capture() bool {
-	l.Mutex.Lock()
-	defer l.Mutex.Unlock()
-	if l.count >= l.max {
-		return false
-	}
-	l.count++
-	l.WaitGroup.Add(1)
-	return true
-}
-
-func (l *Lock) Wait() {
-	l.WaitGroup.Wait()
-}
-
 func main() {
-	NQueens(12)
+	NQueens(13)
 }
