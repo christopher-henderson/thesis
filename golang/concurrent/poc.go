@@ -16,6 +16,7 @@ func NQueens(N int) {
 	start := time.Now()
 	winners := 0
 	l := sync.Mutex{}
+	slaughter := make([]int, 0)
 	// 'if' used to scope this entire engine.
 	if true {
 		// User CHILDREN declaration.
@@ -38,6 +39,7 @@ func NQueens(N int) {
 		}
 		// User ACCEPT declaration.
 		USER_accept := func(solution []Queen) bool {
+			slaughter = append(slaughter, 5)
 			if len(solution) == N {
 				// Print it, append it to a slice of solutions,
 				// whatever you want here.
@@ -49,6 +51,7 @@ func NQueens(N int) {
 				l.Unlock()
 				return true
 			}
+			slaughter = slaughter[:len(slaughter)-1]
 			return false
 		}
 		// User REJECT declaration.
@@ -140,7 +143,6 @@ func NQueens(N int) {
 					solution = solution[:len(solution)-1]
 					continue
 				}
-
 				if capture() {
 					dst := make([]Queen, len(solution))
 					copy(dst, solution)
@@ -149,7 +151,6 @@ func NQueens(N int) {
 					solution = solution[:len(solution)-1]
 					continue
 				}
-
 				// Push the current root to the stack.
 				stack = append(stack, StackEntry{root, children})
 				// Make the candidate the new root.
@@ -159,12 +160,10 @@ func NQueens(N int) {
 			}
 			done()
 		}
-
 		root := Queen{0, 0}
 		capture()
 		go engine(make([]Queen, 0), root, USER_children(root))
 		lock.WaitGroup.Wait()
-
 	}
 	log.Println(winners)
 	log.Println(time.Now().Sub(start))
@@ -172,5 +171,5 @@ func NQueens(N int) {
 }
 
 func main() {
-	NQueens(13)
+	NQueens(12)
 }
