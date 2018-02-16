@@ -35,29 +35,8 @@ if true {
 		Parent   {USERTYPE}
 		Children <-chan {USERTYPE}
 	}
-	lock := struct {
-		max   int
-		count int
-		sync.WaitGroup
-		sync.Mutex
-	}{}
-	lock.max = {MAX_GOROUTINE}
-	capture := func() bool {
-		lock.Mutex.Lock()
-		defer lock.Mutex.Unlock()
-		if lock.count >= lock.max {
-			return false
-		}
-		lock.count++
-		lock.WaitGroup.Add(1)
-		return true
-	}
-	done := func() {
-		lock.Mutex.Lock()
-		lock.WaitGroup.Done()
-		lock.count -= 1
-		lock.Mutex.Unlock()
-	}
+	lock := make(chan int, {MAX_GOROUTINE})
+	wg := make(chan int, {MAX_GOROUTINE})
 	// You have to declare first since the function can fire off a
 	// goroutine of itself.
 	var engine func(solution []{USERTYPE}, root {USERTYPE}, children <-chan {USERTYPE})
@@ -105,13 +84,16 @@ if true {
 				solution = solution[:len(solution)-1]
 				continue
 			}
-			if capture() {
-				s := make([]{USERTYPE}, len(solution))
-				copy(s, solution)
-				go engine(s, candidate, __{ID}_USER_children(candidate))
-				// pretend we didn't see this
-				solution = solution[:len(solution)-1]
-				continue
+			select {
+				case lock <- 1:
+					wg <- 1
+					s := make([]{USERTYPE}, len(solution))
+					copy(s, solution)
+					go engine(s, candidate, __{ID}_USER_children(candidate))
+					// pretend we didn't see this
+					solution = solution[:len(solution)-1]
+					continue
+				default:
 			}
 			// Push the current root to the stack.
 			stack = append(stack, StackEntry{root, children})
@@ -120,12 +102,20 @@ if true {
 			// Get the new root's children channel.
 			children = __{ID}_USER_children(root)
 		}
-		done()
+		<- lock
+		wg <- -1
 	}
 	root := {ROOT_EXPRESSION}
-	capture()
+	lock <- 1
+	wg <- 1
 	go engine(make([]{USERTYPE}, 0), root, __{ID}_USER_children(root))
-	lock.WaitGroup.Wait()
+	count := 0
+	for c := range wg {
+		count += c
+		if count == 0 {
+			break
+		}
+	}
 }`
 
 const DFS = `// 'if' used to scope this entire engine.
