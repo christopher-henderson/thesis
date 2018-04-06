@@ -15,42 +15,52 @@ import (
 	"strings"
 )
 
-const template = `// 'if' used to scope this entire engine.
+const template = `
 if true {
+// This is the one piece of internals that the userland
+	// can potentially see.
+	type __GraphNode struct {
+		Active	 bool
+		ID       int
+		Parent   int
+	}
 	// User CHILDREN declaration.
-	// User CHILDREN declaration.
-	__{ID}_USER_children := func({CHILDREN_PARAM1} {USERTYPE}) <-chan {USERTYPE} {
+	USER_children := func(node {UTYPE}, solution []{UTYPE}, gid *__GraphNode) <-chan {UTYPE} {
 		{CHILDREN_BODY}
 	}
 	// User ACCEPT declaration.
-	__{ID}_USER_accept := func({ACCEPT_PARAM1} []{USERTYPE}) bool {
+	USER_accept := func(node {UTYPE}, solution []{UTYPE}, gid *__GraphNode) bool {
 		{ACCEPT_BODY}
 	}
 	// User REJECT declaration.
-	__{ID}_USER_reject := func({REJECT_PARAM1} {USERTYPE}, {REJECT_PARAM2} []{USERTYPE}) bool {
+	USER_reject := func(node {UTYPE}, solution []{UTYPE}, gid *__GraphNode) bool {
 		{REJECT_BODY}
 	}
+	root := {ROOT_EXPRESSION}
+	maxgoroutine := {MAX_GOROUTINE}
 	// Parent:Children PODO meant for stack management.
 	type StackEntry struct {
-		Parent   {USERTYPE}
-		Children <-chan {USERTYPE}
+		Parent   {UTYPE}
+		Children <-chan {UTYPE}
 	}
-	lock := make(chan int, {MAX_GOROUTINE})
-	wg := make(chan int, {MAX_GOROUTINE})
+	lock := make(chan int, maxgoroutine)
+	wg := make(chan int, maxgoroutine)
+	ticket := make(chan int, maxgoroutine)
 	// You have to declare first since the function can fire off a
 	// goroutine of itself.
-	var engine func(solution []{USERTYPE}, root {USERTYPE}, children <-chan {USERTYPE})
-	engine = func(solution []{USERTYPE}, root {USERTYPE}, children <-chan {USERTYPE}) {
+	var engine func(solution []{UTYPE}, root {UTYPE}, gid *__GraphNode)
+	engine = func(solution []{UTYPE}, root {UTYPE}, gid *__GraphNode) {
+		_children := USER_children(root, solution, gid)
 		// Stack of Parent:Chidren pairs.
 		stack := make([]StackEntry, 0)
 		// Current candidate under consideration.
-		var candidate {USERTYPE}
+		var candidate {UTYPE}
 		// Holds a StackEntry.
 		var stackEntry StackEntry
 		// Generic boolean variable
 		var ok bool
 		for {
-			if candidate, ok = <-children; !ok {
+			if candidate, ok = <-_children; !ok {
 				// This node has no further children.
 				if len(stack) == 0 {
 					// Algorithm termination. No further nodes in the stack.
@@ -65,20 +75,20 @@ if true {
 				stack = stack[:len(stack)-1]
 				// Extract root and candidate fields from the StackEntry.
 				root = stackEntry.Parent
-				children = stackEntry.Children
+				_children = stackEntry.Children
 				continue
 			}
 			// Ask the user if we should reject this candidate.
-			reject := __{ID}_USER_reject(candidate, solution)
-			if reject {
+			_reject := USER_reject(candidate, solution, gid)
+			if _reject {
 				// Rejected candidate.
 				continue
 			}
 			// Append the candidate to the solution.
 			solution = append(solution, candidate)
 			// Ask the user if we should accept this solution.
-			accept := __{ID}_USER_accept(solution)
-			if accept {
+			_accept := USER_accept(candidate, solution, gid)
+			if _accept {
 				// Accepted solution.
 				// Pop from the solution thus far and continue on with the next child.
 				solution = solution[:len(solution)-1]
@@ -87,28 +97,42 @@ if true {
 			select {
 				case lock <- 1:
 					wg <- 1
-					s := make([]{USERTYPE}, len(solution))
+					s := make([]{UTYPE}, len(solution))
 					copy(s, solution)
-					go engine(s, candidate, __{ID}_USER_children(candidate))
+					go engine(s, candidate, &__GraphNode{Active: true, ID: <-ticket, Parent: gid.ID})
 					// pretend we didn't see this
 					solution = solution[:len(solution)-1]
 					continue
 				default:
 			}
 			// Push the current root to the stack.
-			stack = append(stack, StackEntry{root, children})
+			stack = append(stack, StackEntry{root, _children})
 			// Make the candidate the new root.
 			root = candidate
 			// Get the new root's children channel.
-			children = __{ID}_USER_children(root)
+			_children = USER_children(root, solution, gid)
 		}
 		<- lock
 		wg <- -1
+		gid.Active = false
 	}
-	root := {ROOT_EXPRESSION}
+	shutdown := make(chan struct{}, 0)
+	go func() {
+		// Goroutine ticketing system.
+		id := 0
+		for {
+			select {
+			case ticket <- id:
+				id++
+			case <-shutdown:
+				close(ticket)
+				return
+			}
+		}
+	}()
 	lock <- 1
 	wg <- 1
-	go engine(make([]{USERTYPE}, 0), root, __{ID}_USER_children(root))
+	go engine(make([]{UTYPE}, 0), root, &__GraphNode{Active: true, ID: <-ticket, Parent: 0})
 	count := 0
 	for c := range wg {
 		count += c
@@ -116,7 +140,11 @@ if true {
 			break
 		}
 	}
-}`
+	close(shutdown)
+	close(wg)
+	close(lock)
+}
+`
 
 const DFS = `// 'if' used to scope this entire engine.
 if true {
@@ -223,7 +251,7 @@ type Search struct {
 
 func (s *Search) String() string {
 	r := strings.NewReplacer("{ID}", s.ID,
-		"{USERTYPE}", s.UserType,
+		"{UTYPE}", s.UserType,
 		"{ROOT_EXPRESSION}", s.Root,
 		"{CHILDREN_PARAM1}", s.Children.ParamParent,
 		"{REJECT_PARAM1}", s.Reject.ParamCandidate,

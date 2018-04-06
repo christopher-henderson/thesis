@@ -1,0 +1,183 @@
+digraph nqueens4 {
+0 [label = "FCG"]
+	011 [label = "1, 1"]
+	edge [color=blue]
+	0 -> 011
+	01221 [label = "2, 1"]
+	edge [color=red]
+	012 -> 01221
+	01222 [label = "2, 2"]
+	edge [color=red]
+	012 -> 01222
+	01223 [label = "2, 3"]
+	edge [color=red]
+	012 -> 01223
+	012 [label = "1, 2"]
+	edge [color=blue]
+	0 -> 012
+	013 [label = "1, 3"]
+	edge [color=blue]
+	0 -> 013
+	01224 [label = "2, 4"]
+	edge [color=red]
+	012 -> 01224
+	0122431 [label = "3, 1"]
+	edge [color=green]
+	01224 -> 0122431
+	012243141 [label = "4, 1"]
+	edge [color=green]
+	0122431 -> 012243141
+	012243142 [label = "4, 2"]
+	edge [color=green]
+	0122431 -> 012243142
+	012243143 [label = "4, 3"]
+	edge [color=green]
+	0122431 -> 012243143
+	012243144 [label = "4, 4"]
+	edge [color=green]
+	0122431 -> 012243144
+	0122432 [label = "3, 2"]
+	edge [color=green]
+	01224 -> 0122432
+	0122433 [label = "3, 3"]
+	edge [color=green]
+	01224 -> 0122433
+	0132131 [label = "3, 1"]
+	edge [color=blue]
+	01321 -> 0132131
+	0122434 [label = "3, 4"]
+	edge [color=green]
+	01224 -> 0122434
+	01321 [label = "2, 1"]
+	edge [color=blue]
+	013 -> 01321
+	01322 [label = "2, 2"]
+	edge [color=blue]
+	013 -> 01322
+	01323 [label = "2, 3"]
+	edge [color=blue]
+	013 -> 01323
+	0132132 [label = "3, 2"]
+	edge [color=blue]
+	01321 -> 0132132
+	0132133 [label = "3, 3"]
+	edge [color=blue]
+	01321 -> 0132133
+	01121 [label = "2, 1"]
+	edge [color=orange]
+	011 -> 01121
+	0132134 [label = "3, 4"]
+	edge [color=blue]
+	01321 -> 0132134
+	01122 [label = "2, 2"]
+	edge [color=orange]
+	011 -> 01122
+	01123 [label = "2, 3"]
+	edge [color=orange]
+	011 -> 01123
+	01324 [label = "2, 4"]
+	edge [color=blue]
+	013 -> 01324
+	01124 [label = "2, 4"]
+	edge [color=orange]
+	011 -> 01124
+	0112431 [label = "3, 1"]
+	edge [color=orange]
+	01124 -> 0112431
+	01421 [label = "2, 1"]
+	edge [color=blue]
+	014 -> 01421
+	0112331 [label = "3, 1"]
+	edge [color=red]
+	01123 -> 0112331
+	0112332 [label = "3, 2"]
+	edge [color=red]
+	01123 -> 0112332
+	0112333 [label = "3, 3"]
+	edge [color=red]
+	01123 -> 0112333
+	013213441 [label = "4, 1"]
+	edge [color=orange]
+	0132134 -> 013213441
+	0112334 [label = "3, 4"]
+	edge [color=red]
+	01123 -> 0112334
+	011243241 [label = "4, 1"]
+	edge [color=orange]
+	0112432 -> 011243241
+	014 [label = "1, 4"]
+	edge [color=blue]
+	0 -> 014
+	011243242 [label = "4, 2"]
+	edge [color=orange]
+	0112432 -> 011243242
+	011243243 [label = "4, 3"]
+	edge [color=orange]
+	0112432 -> 011243243
+	011243244 [label = "4, 4"]
+	edge [color=orange]
+	0112432 -> 011243244
+	013213442 [label = "4, 2"]
+	edge [color=orange]
+	0132134 -> 013213442
+	013213443 [label = "4, 3"]
+	edge [color=orange]
+	0132134 -> 013213443
+	0142131 [label = "3, 1"]
+	edge [color=blue]
+	01421 -> 0142131
+	0142132 [label = "3, 2"]
+	edge [color=blue]
+	01421 -> 0142132
+	0112432 [label = "3, 2"]
+	edge [color=orange]
+	01124 -> 0112432
+	0142133 [label = "3, 3"]
+	edge [color=blue]
+	01421 -> 0142133
+	0142134 [label = "3, 4"]
+	edge [color=blue]
+	01421 -> 0142134
+	014213341 [label = "4, 1"]
+	edge [color=green]
+	0142133 -> 014213341
+	0112433 [label = "3, 3"]
+	edge [color=orange]
+	01124 -> 0112433
+	0112434 [label = "3, 4"]
+	edge [color=orange]
+	01124 -> 0112434
+	01422 [label = "2, 2"]
+	edge [color=blue]
+	014 -> 01422
+	014213342 [label = "4, 2"]
+	edge [color=green]
+	0142133 -> 014213342
+	014213343 [label = "4, 3"]
+	edge [color=green]
+	0142133 -> 014213343
+	014213344 [label = "4, 4"]
+	edge [color=green]
+	0142133 -> 014213344
+	0142231 [label = "3, 1"]
+	edge [color=blue]
+	01422 -> 0142231
+	0142232 [label = "3, 2"]
+	edge [color=blue]
+	01422 -> 0142232
+	0142233 [label = "3, 3"]
+	edge [color=blue]
+	01422 -> 0142233
+	0142234 [label = "3, 4"]
+	edge [color=blue]
+	01422 -> 0142234
+	013213444 [label = "4, 4"]
+	edge [color=orange]
+	0132134 -> 013213444
+	01423 [label = "2, 3"]
+	edge [color=blue]
+	014 -> 01423
+	01424 [label = "2, 4"]
+	edge [color=blue]
+	014 -> 01424
+}

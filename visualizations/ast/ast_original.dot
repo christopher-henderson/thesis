@@ -1,0 +1,13 @@
+digraph AST {
+	ellipse1 [label = "..."]
+	ellipse1 -> search
+	ellipse1 -> "..."
+	ellipse2 [label = "..."]
+	
+	search -> ellipse2
+	search -> FCG
+	search -> children
+	search -> reject
+	search -> accept
+
+}

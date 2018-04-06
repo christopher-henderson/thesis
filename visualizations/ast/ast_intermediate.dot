@@ -1,0 +1,16 @@
+digraph ast {
+	fcg [label = "assignment"]
+	children [label = "assignment"]
+	accept [label = "assignment"]
+	reject [label = "assignment"]
+
+
+	reject -> SearchBody
+	reject -> FuncLiteralReject
+	accept -> reject
+	accept -> FuncLiteralAccept
+	children -> accept
+	children -> FuncLiteralChildren
+	fcg -> children
+	fcg -> FCG
+}

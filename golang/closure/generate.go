@@ -314,12 +314,13 @@ var in string
 var out string
 
 func init() {
-	flag.StringVar(&in, "in", "testin.go", "Path to the input Go file.")
+	flag.StringVar(&in, "in", "recurse.go", "Path to the input Go file.")
 	flag.StringVar(&out, "out", "testout.go", "Path to the output Go file.")
 	flag.Parse()
 }
 
 func main() {
+	return
 	inf, err := os.Open(in)
 	if err != nil {
 		log.Panic(err)

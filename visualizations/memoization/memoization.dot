@@ -1,0 +1,10 @@
+digraph removal {
+
+	Alice -> Bob [dir="both"]
+	Alice -> Mallory [dir="both"]
+	Alice -> Trent [dir="both"]
+
+	Mallory -> Bob [dir="both"]
+	Mallory -> Trent [dir="both"]
+
+}

@@ -1,0 +1,24 @@
+digraph ast {
+
+	ellipse1 [label = "..."]
+	ellipse1 -> assignment
+	ellipse1 -> "..."
+	ellipse2 [label = "..."]
+
+	SearchBody -> ellipse2
+
+	children [label = "assignment"]
+	accept [label = "assignment"]
+	reject [label = "assignment"]
+
+
+	assignment -> children
+	reject -> SearchBody
+	reject -> FuncLiteralReject
+	accept -> reject
+	accept -> FuncLiteralAccept
+	children -> accept
+	children -> FuncLiteralChildren
+	assignment -> FCG
+
+}

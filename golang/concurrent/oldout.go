@@ -1,8 +1,10 @@
 package main
 
 import (
+	"log"
 	"runtime"
 	"sync"
+	"time"
 )
 
 type Queen struct {
@@ -10,14 +12,16 @@ type Queen struct {
 	Row    int
 }
 
-func NQueens(N int) {
-	// start := time.Now()
-	// winners := 0
-	// l := sync.Mutex{}
+func main() {
+	N := 12
+	start := time.Now()
+	winners := 0
+	l := sync.Mutex{}
 	// 'if' used to scope this entire engine.
 	if true {
 		// User CHILDREN declaration.
-		USER_children := func(parent Queen) chan Queen {
+		// User CHILDREN declaration.
+		__5b31a206_USER_children := func(parent Queen) <-chan Queen {
 			column := parent.Column + 1
 			c := make(chan Queen, 0)
 			// If the parent is in the final column
@@ -35,22 +39,22 @@ func NQueens(N int) {
 			return c
 		}
 		// User ACCEPT declaration.
-		USER_accept := func(solution []Queen) bool {
+		__5b31a206_USER_accept := func(solution []Queen) bool {
 			if len(solution) == N {
 				// Print it, append it to a slice of solutions,
 				// whatever you want here.
 				// log.Println(solution)
 				// Keeping track of number of solutions
 				// for quick verification.
-				// l.Lock()
-				// winners++
-				// l.Unlock()
+				l.Lock()
+				winners++
+				l.Unlock()
 				return true
 			}
 			return false
 		}
 		// User REJECT declaration.
-		USER_reject := func(candidate Queen, solution []Queen) bool {
+		__5b31a206_USER_reject := func(candidate Queen, solution []Queen) bool {
 			row, column := candidate.Row, candidate.Column
 			for _, q := range solution {
 				r, c := q.Row, q.Column
@@ -66,7 +70,7 @@ func NQueens(N int) {
 		// Parent:Children PODO meant for stack management.
 		type StackEntry struct {
 			Parent   Queen
-			Children chan Queen
+			Children <-chan Queen
 		}
 		lock := struct {
 			max   int
@@ -75,33 +79,36 @@ func NQueens(N int) {
 			sync.Mutex
 		}{}
 		lock.max = runtime.NumCPU()
-		// capture := func() bool {
-		// 	lock.Mutex.Lock()
-		// 	defer lock.Mutex.Unlock()
-		// 	if lock.count >= lock.max {
-		// 		return false
-		// 	}
-		// 	lock.count++
-		// 	lock.WaitGroup.Add(1)
-		// 	return true
-		// }
-		// done := func() {
-		// 	lock.Mutex.Lock()
-		// 	lock.WaitGroup.Done()
-		// 	lock.count -= 1
-		// 	lock.Mutex.Unlock()
-		// }
+		capture := func() bool {
+			lock.Mutex.Lock()
+			defer lock.Mutex.Unlock()
+			if lock.count >= lock.max {
+				return false
+			}
+			lock.count++
+			lock.WaitGroup.Add(1)
+			return true
+		}
+		done := func() {
+			lock.Mutex.Lock()
+			lock.WaitGroup.Done()
+			lock.count -= 1
+			lock.Mutex.Unlock()
+		}
 		// You have to declare first since the function can fire off a
 		// goroutine of itself.
-		var engine func(solution []Queen, root Queen, children chan Queen)
-		engine = func(solution []Queen, root Queen, children chan Queen) {
+		var engine func(solution []Queen, root Queen, children <-chan Queen)
+		engine = func(solution []Queen, root Queen, children <-chan Queen) {
 			// Stack of Parent:Chidren pairs.
 			stack := make([]StackEntry, 0)
+			// Current candidate under consideration.
+			var candidate Queen
 			// Holds a StackEntry.
 			var stackEntry StackEntry
-			candidate, ok := <-children
+			// Generic boolean variable
+			var ok bool
 			for {
-				if !ok {
+				if candidate, ok = <-children; !ok {
 					// This node has no further children.
 					if len(stack) == 0 {
 						// Algorithm termination. No further nodes in the stack.
@@ -117,85 +124,46 @@ func NQueens(N int) {
 					// Extract root and candidate fields from the StackEntry.
 					root = stackEntry.Parent
 					children = stackEntry.Children
-					candidate, ok = <-children
 					continue
 				}
 				// Ask the user if we should reject this candidate.
-				reject := USER_reject(candidate, solution)
+				reject := __5b31a206_USER_reject(candidate, solution)
 				if reject {
-					candidate, ok = <-children
 					// Rejected candidate.
 					continue
 				}
 				// Append the candidate to the solution.
 				solution = append(solution, candidate)
 				// Ask the user if we should accept this solution.
-				accept := USER_accept(solution)
+				accept := __5b31a206_USER_accept(solution)
 				if accept {
 					// Accepted solution.
 					// Pop from the solution thus far and continue on with the next child.
 					solution = solution[:len(solution)-1]
-					candidate, ok = <-children
 					continue
 				}
-
-				lock.Lock()
-				if lock.count < lock.max {
-					nextChild, ok := <-children
-					if ok {
-						lock.count++
-						lock.Add(1)
-						lock.Unlock()
-						dst := make([]Queen, len(solution))
-						copy(dst, solution)
-						go engine(dst, candidate, USER_children(candidate))
-						candidate = nextChild
-						// pretend we didn't see this
-						solution = solution[:len(solution)-1]
-						continue
-					}
+				if capture() {
+					s := make([]Queen, len(solution))
+					copy(s, solution)
+					go engine(s, candidate, __5b31a206_USER_children(candidate))
+					// pretend we didn't see this
+					solution = solution[:len(solution)-1]
+					continue
 				}
-				lock.Unlock()
 				// Push the current root to the stack.
 				stack = append(stack, StackEntry{root, children})
 				// Make the candidate the new root.
 				root = candidate
 				// Get the new root's children channel.
-				children = USER_children(root)
-				candidate, ok = <-children
-
-				// if capture() {
-				// 	dst := make([]Queen, len(solution))
-				// 	copy(dst, solution)
-				// 	go engine(dst, candidate, USER_children(candidate))
-				// 	// pretend we didn't see this
-				// 	solution = solution[:len(solution)-1]
-				// 	continue
-				// }
-
-				// // Push the current root to the stack.
-				// stack = append(stack, StackEntry{root, children})
-				// // Make the candidate the new root.
-				// root = candidate
-				// // Get the new root's children channel.
-				// children = USER_children(root)
+				children = __5b31a206_USER_children(root)
 			}
-			lock.Lock()
-			lock.count -= 1
-			lock.Done()
-			lock.Mutex.Unlock()
+			done()
 		}
 		root := Queen{0, 0}
-		lock.count++
-		lock.Add(1)
-		go engine(make([]Queen, 0), root, USER_children(root))
+		capture()
+		go engine(make([]Queen, 0), root, __5b31a206_USER_children(root))
 		lock.WaitGroup.Wait()
 	}
-	// log.Println(winners)
-	// log.Println(time.Now().Sub(start))
-
-}
-
-func main() {
-	NQueens(6)
+	log.Println(winners)
+	log.Println(time.Now().Sub(start))
 }

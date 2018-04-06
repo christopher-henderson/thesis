@@ -1,0 +1,13 @@
+digraph removal {
+	a [label = ""]
+	b [label = ""]
+	c [label = ""]
+	d [label = ""]
+	e [label = ""]
+
+	edge [color=red]
+	a -> b
+	b -> c
+	b -> d
+	b -> e
+}

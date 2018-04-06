@@ -1,0 +1,25 @@
+digraph description {
+	A
+	{
+		rank = same
+		B C D
+	}
+	edge [color=red]
+	A -> B
+	edge [color=black]
+	B -> C
+	C -> D
+
+	{
+		rank = same
+		E
+		F
+		G
+	}
+
+	edge [color=red]
+	B -> E
+	edge [color=black]
+	E -> F
+	F -> G	
+}

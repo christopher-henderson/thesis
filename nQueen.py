@@ -8,7 +8,7 @@ It is getting correct answers, although I am doing something wrong and also
 getting duplicates.
 '''
 
-N = 4
+N = 8
 unique = set()
 
 
@@ -26,6 +26,8 @@ def backtrack(P, C, R):
     P.append(R)
     if accept(P):
         output(P)
+        P.pop()
+        return
     s = first(C)
     while s is not None:
         backtrack(P, *s)
@@ -34,8 +36,11 @@ def backtrack(P, C, R):
     # procedure that takes in P and c and returns whether more candidate solutions
     # may exist. In this case I added the 'more' procedure.
     P.pop()
-    if more(R):
-        backtrack(P, *next(C, R))
+    s = next(C, R)
+    if s is not None:
+        backtrack(P, *s)
+    # if more(R):
+    #     backtrack(P, *next(C, R))
 
 
 def root():

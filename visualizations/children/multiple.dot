@@ -1,0 +1,14 @@
+digraph Multiple {
+	Node1 [label = "..."]
+	Node2 [label = "..."]
+	Node3 [label = "..."]
+	G1 [label = "Graph"]
+	G2 [label = "Graph"]
+	G3 [label = "Graph"]
+	FCG -> G1
+	FCG -> G2
+	FCG -> G3
+	G1 -> Node1
+	G2 -> Node2
+	G3 -> Node3
+}

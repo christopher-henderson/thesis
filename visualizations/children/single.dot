@@ -1,0 +1,11 @@
+digraph Empty {
+	G [label = "Graph"]
+	Node1 [label = "..."]
+	Node2 [label = "..."]
+	Node3 [label = "..."]
+
+	FCG -> G
+	G -> Node1
+	G -> Node2
+	G -> Node3
+}

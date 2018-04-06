@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"runtime"
-	"sync"
 	"time"
 )
 
@@ -13,16 +11,20 @@ type Queen struct {
 }
 
 func main() {
-	N := 12
+	N := 8
 	start := time.Now()
-	winners := 0
-	l := sync.Mutex{}
-	// 'if' used to scope this entire engine.
+
 	if true {
+		// This is the one piece of internals that the userland
+		// can potentially see.
+		type __GraphNode struct {
+			Active bool
+			ID     int
+			Parent int
+		}
 		// User CHILDREN declaration.
-		// User CHILDREN declaration.
-		__5b31a206_USER_children := func(parent Queen) <-chan Queen {
-			column := parent.Column + 1
+		USER_children := func(node Queen, solution []Queen, gid *__GraphNode) <-chan Queen {
+			column := node.Column + 1
 			c := make(chan Queen, 0)
 			// If the parent is in the final column
 			// then there are no children.
@@ -39,23 +41,16 @@ func main() {
 			return c
 		}
 		// User ACCEPT declaration.
-		__5b31a206_USER_accept := func(solution []Queen) bool {
+		USER_accept := func(node Queen, solution []Queen, gid *__GraphNode) bool {
 			if len(solution) == N {
-				// Print it, append it to a slice of solutions,
-				// whatever you want here.
-				// log.Println(solution)
-				// Keeping track of number of solutions
-				// for quick verification.
-				l.Lock()
-				winners++
-				l.Unlock()
+				log.Println(solution)
 				return true
 			}
 			return false
 		}
 		// User REJECT declaration.
-		__5b31a206_USER_reject := func(candidate Queen, solution []Queen) bool {
-			row, column := candidate.Row, candidate.Column
+		USER_reject := func(node Queen, solution []Queen, gid *__GraphNode) bool {
+			row, column := node.Row, node.Column
 			for _, q := range solution {
 				r, c := q.Row, q.Column
 				if row == r ||
@@ -67,38 +62,21 @@ func main() {
 			}
 			return false
 		}
+		root := Queen{0, 0}
+		maxgoroutine := 1
 		// Parent:Children PODO meant for stack management.
 		type StackEntry struct {
 			Parent   Queen
 			Children <-chan Queen
 		}
-		lock := struct {
-			max   int
-			count int
-			sync.WaitGroup
-			sync.Mutex
-		}{}
-		lock.max = runtime.NumCPU()
-		capture := func() bool {
-			lock.Mutex.Lock()
-			defer lock.Mutex.Unlock()
-			if lock.count >= lock.max {
-				return false
-			}
-			lock.count++
-			lock.WaitGroup.Add(1)
-			return true
-		}
-		done := func() {
-			lock.Mutex.Lock()
-			lock.WaitGroup.Done()
-			lock.count -= 1
-			lock.Mutex.Unlock()
-		}
+		lock := make(chan int, maxgoroutine)
+		wg := make(chan int, maxgoroutine)
+		ticket := make(chan int, maxgoroutine)
 		// You have to declare first since the function can fire off a
 		// goroutine of itself.
-		var engine func(solution []Queen, root Queen, children <-chan Queen)
-		engine = func(solution []Queen, root Queen, children <-chan Queen) {
+		var engine func(solution []Queen, root Queen, gid *__GraphNode)
+		engine = func(solution []Queen, root Queen, gid *__GraphNode) {
+			_children := USER_children(root, solution, gid)
 			// Stack of Parent:Chidren pairs.
 			stack := make([]StackEntry, 0)
 			// Current candidate under consideration.
@@ -108,7 +86,7 @@ func main() {
 			// Generic boolean variable
 			var ok bool
 			for {
-				if candidate, ok = <-children; !ok {
+				if candidate, ok = <-_children; !ok {
 					// This node has no further children.
 					if len(stack) == 0 {
 						// Algorithm termination. No further nodes in the stack.
@@ -123,47 +101,75 @@ func main() {
 					stack = stack[:len(stack)-1]
 					// Extract root and candidate fields from the StackEntry.
 					root = stackEntry.Parent
-					children = stackEntry.Children
+					_children = stackEntry.Children
 					continue
 				}
 				// Ask the user if we should reject this candidate.
-				reject := __5b31a206_USER_reject(candidate, solution)
-				if reject {
+				_reject := USER_reject(candidate, solution, gid)
+				if _reject {
 					// Rejected candidate.
 					continue
 				}
 				// Append the candidate to the solution.
 				solution = append(solution, candidate)
 				// Ask the user if we should accept this solution.
-				accept := __5b31a206_USER_accept(solution)
-				if accept {
+				_accept := USER_accept(candidate, solution, gid)
+				if _accept {
 					// Accepted solution.
 					// Pop from the solution thus far and continue on with the next child.
 					solution = solution[:len(solution)-1]
 					continue
 				}
-				if capture() {
+				select {
+				case lock <- 1:
+					wg <- 1
 					s := make([]Queen, len(solution))
 					copy(s, solution)
-					go engine(s, candidate, __5b31a206_USER_children(candidate))
+					go engine(s, candidate, &__GraphNode{Active: true, ID: <-ticket, Parent: gid.ID})
 					// pretend we didn't see this
 					solution = solution[:len(solution)-1]
 					continue
+				default:
 				}
 				// Push the current root to the stack.
-				stack = append(stack, StackEntry{root, children})
+				stack = append(stack, StackEntry{root, _children})
 				// Make the candidate the new root.
 				root = candidate
 				// Get the new root's children channel.
-				children = __5b31a206_USER_children(root)
+				_children = USER_children(root, solution, gid)
 			}
-			done()
+			<-lock
+			wg <- -1
+			gid.Active = false
 		}
-		root := Queen{0, 0}
-		capture()
-		go engine(make([]Queen, 0), root, __5b31a206_USER_children(root))
-		lock.WaitGroup.Wait()
+		shutdown := make(chan struct{}, 0)
+		go func() {
+			// Goroutine ticketing system.
+			id := 0
+			for {
+				select {
+				case ticket <- id:
+					id++
+				case <-shutdown:
+					close(ticket)
+					return
+				}
+			}
+		}()
+		lock <- 1
+		wg <- 1
+		go engine(make([]Queen, 0), root, &__GraphNode{Active: true, ID: <-ticket, Parent: 0})
+		count := 0
+		for c := range wg {
+			count += c
+			if count == 0 {
+				break
+			}
+		}
+		close(shutdown)
+		close(wg)
+		close(lock)
 	}
-	log.Println(winners)
+
 	log.Println(time.Now().Sub(start))
 }
