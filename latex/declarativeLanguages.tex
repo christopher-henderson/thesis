@@ -1,0 +1,21 @@
+\chapter{DECLARATIVE PROGRAMMING}
+\section{Section1}
+Declarative programming languages often ask only of the user that they provide a desire, or goal, that they wish to achieve. The operational semantics of that goal are out of the user’s hands as the language’s runtime environment makes decisions that the user is not a part of.
+
+\begin{lstlisting}[language=SQL, caption=“Retrieve for me all employees whose name is Alice”. SQL is perhaps the most well known declarative language on the planet. Exactly how this data is stored or how the system retrieves it is usually of little concern to the user.]
+SELECT *
+FROM Employee
+WHERE name = “Alice”
+\end{lstlisting}
+
+That is, declarative languages allow for the easy definition of a goal, however defining how that goal is reached is often difficult, if not impossible.
+
+Conversely imperative/procedural programming languages allow for the trivial definition of how to achieve a goal. These languages are stemmed from the tradition of Turing Machines and are the predominant languages used in both industry and academia. Outside of database management systems and artificial intelligence research, imperative/procedural languages dominate much of the world (although functional languages have been making a resurgence). For whatever the reason may be (whether it be psychological, machine performance, sheer cultural momentum, or something else altogether) these languages dominate and nearly every new programmer’s first language is a member of the imperative/procedural family tree.
+
+However, those who delve into the world of declarative programming often emerge with a great appreciation for the paradigm. They begin to find joy in releasing themselves from the tyranny of manipulating physical memory and relish the transformation from what was a large, and questionable, procedure to a collection of small, and trivially true, facts.
+
+If we are to use imperative/procedural languages, can we not adopt particular features from the declarative paradigm regardless? Afterall, users of imperative/procedural languages rarely argue for the “purity” of the paradigm. Indeed, the Rust programming language is a systems language which implements a classic declarative feature - pattern matching. [1] What else could the more “traditional” languages borrow from the world of declarative programming?
+
+Of the long list list of features commonly found in declarative programming languages, we shall focus our discussion on automatic backtracking. Ultimately we shall attempt to port automatic backtracking into an already existing imperative/procedural programming language. Throughout the discussion we will frequently return to the NQueens [2] problem as the canonical example of a backtracking problem.
+
+\section{Section2}

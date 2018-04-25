@@ -1,0 +1,9 @@
+\nobreakspace {}\hfill Page\par 
+\contentsline {part}{LIST OF FIGURES}{iii}
+CHAPTER \par 
+\contentsline {chapter}{\numberline {1}DECLARATIVE PROGRAMMING}{1}
+\contentsline {section}{\numberline {1.1}Section1}{1}
+\contentsline {section}{\numberline {1.2}Section2}{2}
+\contentsline {part}{REFERENCES}{3}
+APPENDIX \par 
+\contentsline {chapter}{\numberline {A}RAW DATA}{4}
